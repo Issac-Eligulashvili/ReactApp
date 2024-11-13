@@ -1,40 +1,63 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import { database } from "./js/supabaseClient";
+import AuthScreen from "./screens/AuthScreen";
+import HomeScreen from "./screens/HomeScreen";
 
-export default function App() {
+// Define types for the stack routes
+type RootStackParamList = {
+  Auth: undefined;
+  Home: undefined;
+};
+
+const AuthStack = createStackNavigator<RootStackParamList>();
+const HomeStack = createStackNavigator<RootStackParamList>();
+
+function AuthStackScreen() {
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={["#2E1A47", "#0B1124"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient} // Add a style for LinearGradient
-      >
-        <Text style={styles.text}>
-          Open up App.tsx to start working on your app!
-        </Text>
-        <StatusBar style="auto" />
-      </LinearGradient>
-    </View>
+    <AuthStack.Navigator>
+      <AuthStack.Screen
+        name="Auth"
+        component={AuthScreen}
+        options={{ headerShown: false }}
+      />
+    </AuthStack.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  gradient: {
-    flex: 1, // This makes the gradient cover the full area
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%", // Full width to match the parent container
-  },
-  text: {
-    color: "#fff",
-    fontSize: 16,
-  },
-});
+function HomeStackScreen() {
+  return (
+    <HomeStack.Navigator initialRouteName="Home">
+      <HomeStack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ headerShown: false }}
+      />
+    </HomeStack.Navigator>
+  );
+}
+
+export default function App() {
+  const [user, setUser] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function fetchUser() {
+      const {
+        data: { user },
+      } = await database.auth.getUser();
+      setUser(user);
+    }
+
+    fetchUser();
+  }, []);
+
+  return (
+    <NavigationContainer>
+      {user ? <HomeStackScreen /> : <AuthStackScreen />}
+    </NavigationContainer>
+  );
+}
