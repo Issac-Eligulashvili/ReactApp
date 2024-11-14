@@ -58,20 +58,28 @@ export default function SignupScreen() {
           <Pressable style={styles.button}>
             <Text style={[styles.bold, styles.btnText]}>Sign Up</Text>
           </Pressable>
-          <Text style={[styles.visby, styles.text, { marginTop: 10 }]}>
-            Already have an account?{" "}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: 10,
+            }}
+          >
+            <Text style={[styles.visby, styles.text]}>
+              Already have an account?{" "}
+            </Text>
             <Pressable onPress={() => navigation.navigate("Login")}>
               <Text
                 style={[
                   styles.visby,
                   styles.text,
-                  { textDecorationLine: "underline" },
+                  { textDecorationLine: "underline", alignSelf: "baseline" },
                 ]}
               >
                 Log in
               </Text>
             </Pressable>
-          </Text>
+          </View>
         </View>
       </LinearGradient>
     </View>

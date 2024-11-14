@@ -35,6 +35,8 @@ interface DataProviderProps {
   children: ReactNode;
 }
 
+//TODO fix it so that the setData is after we get data responses that are all okay to prevent null user data on first load
+
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const [userData, setData] = useState<UserData | null>(null);
 
