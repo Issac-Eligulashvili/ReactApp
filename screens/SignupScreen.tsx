@@ -1,31 +1,22 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { StatusBar } from "expo-status-bar";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import CustomTextInput from "../components/TextInput";
 import Logo from "../components/Logo";
-import * as Font from "expo-font";
+import { useNavigation } from "@react-navigation/native";
+import { RootStackParamList } from "../components/type";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 import { useEffect, useState } from "react";
+import React from "react";
 
-export default function AuthScreen() {
+type AuthScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Signup"
+>;
+
+export default function SignupScreen() {
   const [text, setText] = useState("");
-  const [fontLoaded, setFontLoaded] = useState(false);
-
-  useEffect(() => {
-    async function loadFonts() {
-      await Font.loadAsync({
-        VisbyCF: require("../assets/fonts/VisbyCF-Bold.ttf"),
-        "The-Bold-Font": require("../assets/fonts/THE BOLD FONT - FREE VERSION - 2023.ttf"),
-        tex: require("../assets/fonts/tex-gyre-adventor.bold.otf"),
-      });
-      setFontLoaded(true);
-    }
-    loadFonts();
-  }, []);
-
-  if (!fontLoaded) {
-    return <Text>Loading...</Text>;
-  }
+  const navigation = useNavigation<AuthScreenNavigationProp>();
 
   return (
     <View style={styles.container}>
@@ -67,6 +58,20 @@ export default function AuthScreen() {
           <Pressable style={styles.button}>
             <Text style={[styles.bold, styles.btnText]}>Sign Up</Text>
           </Pressable>
+          <Text style={[styles.visby, styles.text, { marginTop: 10 }]}>
+            Already have an account?{" "}
+            <Pressable onPress={() => navigation.navigate("Login")}>
+              <Text
+                style={[
+                  styles.visby,
+                  styles.text,
+                  { textDecorationLine: "underline" },
+                ]}
+              >
+                Log in
+              </Text>
+            </Pressable>
+          </Text>
         </View>
       </LinearGradient>
     </View>
@@ -112,7 +117,7 @@ const styles = StyleSheet.create({
   },
   button: {
     height: 40,
-    width: 129,
+    width: 258,
     backgroundColor: "#fff",
     borderRadius: 40,
     marginTop: 17,
