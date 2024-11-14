@@ -27,6 +27,7 @@ type UserData = {
 interface DataContextType {
   userData: UserData | null;
   setData: React.Dispatch<React.SetStateAction<UserData | null>>;
+  loading: boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -35,20 +36,19 @@ interface DataProviderProps {
   children: ReactNode;
 }
 
-//TODO fix it so that the setData is after we get data responses that are all okay to prevent null user data on first load
-
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const [userData, setData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function getUserData() {
-      const { data } = await database.auth.getUser();
-
       let userData = {
         id: "",
         username: "",
         leaguesIsInIDS: [] as string[],
       };
+
+      const { data } = await database.auth.getUser();
 
       userData.id = data?.user?.id!;
 
@@ -74,13 +74,14 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         leaguesUserIsIn?.map((league) => league.leagueID) ?? [];
 
       setData(userData);
+      setLoading(false);
     }
 
     getUserData();
   }, []);
 
   return (
-    <DataContext.Provider value={{ userData, setData }}>
+    <DataContext.Provider value={{ userData, setData, loading }}>
       {children}
     </DataContext.Provider>
   );

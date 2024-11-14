@@ -4,12 +4,12 @@ import { Pressable, StyleSheet, Text, View, FlatList } from "react-native";
 import { database } from "../js/supabaseClient";
 import { useEffect, useState } from "react";
 import { useData } from "../components/UserDataProvider";
-import { PostgrestSingleResponse } from "@supabase/supabase-js";
 import React from "react";
 
 type LeagueCardProps = {
   leagueName: string;
   teams: number;
+  onPress: () => void;
 };
 
 type League = {
@@ -20,7 +20,7 @@ type League = {
 
 const LeagueCard: React.FC<LeagueCardProps> = ({ leagueName, teams }) => {
   return (
-    <View>
+    <Pressable>
       <Text
         style={[{ color: "#fff", fontSize: 16, marginTop: 10 }, styles.visby]}
       >
@@ -31,14 +31,16 @@ const LeagueCard: React.FC<LeagueCardProps> = ({ leagueName, teams }) => {
       >
         {teams}-Team League
       </Text>
-    </View>
+    </Pressable>
   );
 };
 
 function HomeScreen() {
-  const { userData } = useData();
+  const { userData, loading } = useData();
 
-  console.log(userData);
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
 
   const [leaguesData, setLeaguesData] = useState<League[]>([]);
 
@@ -101,6 +103,9 @@ function HomeScreen() {
                 key={league.leagueID}
                 leagueName={league["league-name"]}
                 teams={league.numPlayers}
+                onPress={() => {
+                  console.log("Pressed");
+                }}
               />
             ))}
           </View>
