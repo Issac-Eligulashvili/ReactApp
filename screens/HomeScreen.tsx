@@ -1,11 +1,14 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, StyleSheet, Text, View, FlatList } from "react-native";
+import { Pressable, StyleSheet, Text, View, FlatList, TextInput } from "react-native";
 import { database } from "../js/supabaseClient";
 import { useEffect, useState } from "react";
 import { useData } from "../components/UserDataProvider";
 import React from "react";
 import { MaterialIcons } from "@expo/vector-icons";
+import CustomModal from "../components/ModalComponent";
+import { Input } from "@/components/ui/input";
+import { InputField } from "@gluestack-ui/themed/build/components/Input";
 
 type LeagueCardProps = {
   leagueName: string;
@@ -42,14 +45,14 @@ const LeagueCard: React.FC<LeagueCardProps> = ({
 
 function HomeScreen() {
   const { userData, loading } = useData();
-
-  if (loading) {
-    return <Text>Loading...</Text>;
-  }
-
   const [leaguesData, setLeaguesData] = useState<League[]>([]);
+  const [showModal, setShowModal] = React.useState(false);
+  const [text, onChangeText] = React.useState('');
+  const step = 1;
 
   useEffect(() => {
+    if (loading || !userData) return;
+
     let fetchedLeagues: League[] = [];
 
     async function fetchLeagues() {
@@ -76,9 +79,9 @@ function HomeScreen() {
     }
 
     fetchLeagues();
-  }, [userData]);
+  }, [userData, loading]);
 
-  if (!userData) {
+  if (loading || !userData) {
     return <Text>Loading...</Text>;
   }
 
@@ -109,7 +112,10 @@ function HomeScreen() {
             <Text style={[{ fontSize: 24, color: "#fff" }, styles.tex]}>
               Leagues
             </Text>
-            <Pressable style={styles.btn}>
+            <Pressable style={styles.btn} onPress={() => {
+              console.log("Opening modal");
+              setShowModal(true);
+            }}>
               <MaterialIcons
                 name="add-circle-outline"
                 size={16}
@@ -160,6 +166,25 @@ function HomeScreen() {
               </Text>
             </View>
           )}
+          <CustomModal isOpen={showModal}>
+            <View style={{ backgroundColor: "#2E1A47", padding: 20, borderRadius: 10 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                {step > 1 ? (
+                  <MaterialIcons name="arrow-back-ios-new" size={24} color="white" />
+                ) : (
+                  <View style={{ width: 24 }} /> // Placeholder to maintain space
+                )}
+                <View style={{ flex: 1, alignItems: "center" }}>
+                  <Text style={{ color: "#fff" }}>Step {step} of 3</Text>
+                </View>
+                <Pressable onPress={() => setShowModal(false)}>
+                  <MaterialIcons name="close" size={24} color="white" />
+                </Pressable>
+              </View>
+              <Text style={{ fontFamily: "tex", fontSize: 24, color: "#fff" }}>Name Your League</Text>
+              <TextInput style={{ padding: 10, color: "#fff", marginTop: 10 }} placeholder="Enter League Name" onChangeText={onChangeText} />
+            </View>
+          </CustomModal>
         </View>
         <StatusBar style="auto" />
       </LinearGradient>
