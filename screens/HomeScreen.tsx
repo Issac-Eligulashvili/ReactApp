@@ -5,6 +5,7 @@ import { database } from "../js/supabaseClient";
 import { useEffect, useState } from "react";
 import { useData } from "../components/UserDataProvider";
 import React from "react";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type LeagueCardProps = {
   leagueName: string;
@@ -18,9 +19,13 @@ type League = {
   numPlayers: number;
 };
 
-const LeagueCard: React.FC<LeagueCardProps> = ({ leagueName, teams }) => {
+const LeagueCard: React.FC<LeagueCardProps> = ({
+  leagueName,
+  teams,
+  onPress,
+}) => {
   return (
-    <Pressable>
+    <Pressable onPress={onPress}>
       <Text
         style={[{ color: "#fff", fontSize: 16, marginTop: 10 }, styles.visby]}
       >
@@ -94,33 +99,68 @@ function HomeScreen() {
             flex: 1,
           }}
         >
-          <View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <Text style={[{ fontSize: 24, color: "#fff" }, styles.tex]}>
               Leagues
             </Text>
-            {leaguesData.map((league) => (
+            <Pressable style={styles.btn}>
+              <MaterialIcons
+                name="add-circle-outline"
+                size={16}
+                color="black"
+              />
+              <Text
+                style={[
+                  styles.tex,
+                  {
+                    lineHeight: 16,
+                    fontSize: 14,
+                    textAlignVertical: "center",
+                    marginTop: 1,
+                  },
+                ]}
+              >
+                ADD
+              </Text>
+            </Pressable>
+          </View>
+          {leaguesData.length > 0 ? (
+            leaguesData.map((league) => (
               <LeagueCard
                 key={league.leagueID}
                 leagueName={league["league-name"]}
                 teams={league.numPlayers}
                 onPress={() => {
-                  console.log("Pressed");
+                  console.log(league.leagueID);
                 }}
               />
-            ))}
-          </View>
+            ))
+          ) : (
+            <View style={{ margin: "auto" }}>
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontFamily: "tex",
+                  color: "#fff",
+                  fontSize: 38,
+                }}
+              >
+                You're not in any Leagues!
+              </Text>
+              <Text
+                style={{ textAlign: "center", marginTop: 10, color: "#A9A9B0" }}
+              >
+                To get started press the "Add" button in the top right!
+              </Text>
+            </View>
+          )}
         </View>
-
-        <Pressable
-          onPress={() => {
-            async function signOut() {
-              const { error } = await database.auth.signOut();
-            }
-            signOut();
-          }}
-        >
-          <Text>SignOut</Text>
-        </Pressable>
         <StatusBar style="auto" />
       </LinearGradient>
     </View>
@@ -154,5 +194,13 @@ const styles = StyleSheet.create({
   },
   tex: {
     fontFamily: "tex",
+  },
+  btn: {
+    padding: 7,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
