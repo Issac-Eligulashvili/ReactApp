@@ -31,6 +31,7 @@ export default function LeagueScreenNav() {
      const leaguesData = allLeaguesData((state) => state.fetchedLeagues);
      const setLeaguesData = allLeaguesData((state) => state.setLeaguesData);
      const isLoading = allLeaguesData((state) => state.loading);
+     const setIsPicked = useModalStore((state) => state.setIsPicked);
      const [loading, setLoading] = useState(true);
      const [activeButton, setActiveButton] = useState<number>(1);
      const navigation = useNavigation();
@@ -45,6 +46,10 @@ export default function LeagueScreenNav() {
                value: league.leagueID,
           }));
      }
+
+     useEffect(() => {
+          setIsPicked(null);
+     }, [])
 
      useEffect(() => {
           setUserDataForCurrentLeague(currentLeagueData.teamsPlaying.find((player: { playerID: any; }) => player.playerID === userData.id));
@@ -199,6 +204,7 @@ export default function LeagueScreenNav() {
                          </Pressable>
                     </View>
                </CustomModal >
+               {/* TODO: Finish creating the league screen with a working functional leage navbar. */}
           </View >
      )
 }
