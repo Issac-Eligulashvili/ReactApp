@@ -8,6 +8,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 
 import { useEffect, useState } from "react";
 import React from "react";
+import { database } from "@/js/supabaseClient";
 
 type AuthScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -16,6 +17,8 @@ type AuthScreenNavigationProp = StackNavigationProp<
 
 export default function SignupScreen() {
   const [text, setText] = useState("");
+  const [text2, setText2] = useState("");
+  const [text3, setText3] = useState("");
   const navigation = useNavigation<AuthScreenNavigationProp>();
 
   return (
@@ -40,8 +43,8 @@ export default function SignupScreen() {
           <View style={styles.inputMargin}>
             <Text style={[styles.inputLable, styles.visby]}>Email</Text>
             <CustomTextInput
-              value={text}
-              onChange={(newText) => setText(newText)}
+              value={text2}
+              onChange={(newText) => setText2(newText)}
               placeholder=""
               secureTextEntry={false}
             ></CustomTextInput>
@@ -49,13 +52,36 @@ export default function SignupScreen() {
           <View style={styles.inputMargin}>
             <Text style={[styles.inputLable, styles.visby]}>Password</Text>
             <CustomTextInput
-              value={text}
-              onChange={(newText) => setText(newText)}
+              value={text3}
+              onChange={(newText) => setText3(newText)}
               placeholder=""
               secureTextEntry={true}
             ></CustomTextInput>
           </View>
-          <Pressable style={styles.button}>
+          <Pressable style={styles.button} onPress={async () => {
+            let response = await database
+              .auth.signUp({
+                email: text2,
+                password: text3,
+              })
+            if (response.error) {
+              alert('There was an error signing up');
+            }
+
+            const userID = response?.data?.user?.id
+
+            let response2 = await database.from("users").insert({
+              username: text,
+              email: text2,
+              id: userID,
+            })
+
+            if (response2.error) {
+              alert('There was an error signing up');
+            } else {
+              navigation.navigate("Login");
+            }
+          }}>
             <Text style={[styles.bold, styles.btnText]}>Sign Up</Text>
           </Pressable>
           <View

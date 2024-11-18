@@ -6,6 +6,7 @@ import { User } from "@supabase/supabase-js";
 import SignupScreen from "./screens/SignupScreen";
 import HomeScreen from "./screens/HomeScreen";
 import LoginScreen from "./screens/LoginScreen";
+import CurrentLeagueScreen from "./screens/CurrentLeagueScreen";
 import { RootStackParamList } from "./components/type";
 import { DataProvider } from "./components/UserDataProvider";
 import { FontProvider } from "./components/FontProvider";
@@ -17,13 +18,13 @@ function AuthStackScreen() {
   return (
     <AuthStack.Navigator>
       <AuthStack.Screen
-        name="Signup"
-        component={SignupScreen}
+        name="Login"
+        component={LoginScreen}
         options={{ headerShown: false }}
       />
       <AuthStack.Screen
-        name="Login"
-        component={LoginScreen}
+        name="Signup"
+        component={SignupScreen}
         options={{ headerShown: false }}
       />
     </AuthStack.Navigator>
@@ -36,6 +37,11 @@ function HomeStackScreen() {
       <HomeStack.Screen
         name="Home"
         component={HomeScreen}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="Leagues"
+        component={CurrentLeagueScreen}
         options={{ headerShown: false }}
       />
     </HomeStack.Navigator>

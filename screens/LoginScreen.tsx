@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, KeyboardAvoidingView, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import CustomTextInput from "../components/TextInput";
 import Logo from "../components/Logo";
@@ -8,6 +8,18 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { useEffect, useState } from "react";
 import { database } from "../js/supabaseClient";
 import React from "react";
+import { userDataState } from "@/states/StoreStates";
+
+type League = {
+  teamsPlaying: []; // Array of players in this league
+  // other league properties
+  leagueID: string;
+};
+
+type LeaguesResponse = {
+  data: League[] | null;
+  // other properties
+};
 
 type AuthScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -18,6 +30,7 @@ export default function LoginScreen() {
   const [text1, setText1] = useState("");
   const [text2, setText2] = useState("");
   const navigation = useNavigation<AuthScreenNavigationProp>();
+  const setUserData = userDataState((state) => state.setUserData);
 
   return (
     <View style={styles.container}>
@@ -29,7 +42,8 @@ export default function LoginScreen() {
       >
         <Logo width={128} height={128} style={styles.logo} />
         <View>
-          <View>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Text style={[styles.inputLable, styles.visby]}>Email</Text>
             <CustomTextInput
               value={text1}
@@ -37,8 +51,9 @@ export default function LoginScreen() {
               placeholder=""
               secureTextEntry={false}
             ></CustomTextInput>
-          </View>
-          <View style={styles.inputMargin}>
+          </KeyboardAvoidingView>
+          <KeyboardAvoidingView style={styles.inputMargin}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Text style={[styles.inputLable, styles.visby]}>Password</Text>
             <CustomTextInput
               value={text2}
@@ -46,7 +61,7 @@ export default function LoginScreen() {
               placeholder=""
               secureTextEntry={true}
             ></CustomTextInput>
-          </View>
+          </KeyboardAvoidingView>
           <Pressable
             style={styles.button}
             onPress={() => {
@@ -59,10 +74,44 @@ export default function LoginScreen() {
                   alert("Incorrect email or password");
                 } else {
                   console.log("User successfully");
-                  console.log(response.data);
+                  getUserData();
                 }
               }
 
+              async function getUserData() {
+                let userData = {
+                  id: "",
+                  username: "",
+                  leaguesIsInIDS: [] as string[],
+                };
+
+                const { data } = await database.auth.getUser();
+
+                userData.id = data?.user?.id!;
+
+                const response = await database
+                  .from("users")
+                  .select("username")
+                  .eq("id", userData.id);
+
+                if (!response.error) {
+                  userData.username = response.data[0]?.username!;
+                }
+
+                const leagues: LeaguesResponse = await database
+                  .from("leagues")
+                  .select("");
+                const leaguesUserIsIn = leagues.data?.filter((league) => {
+                  return league.teamsPlaying.find(
+                    (player: { playerID: string }) => player.playerID === userData.id
+                  );
+                });
+
+                userData.leaguesIsInIDS =
+                  leaguesUserIsIn?.map((league) => league.leagueID) ?? [];
+
+                setUserData(userData);
+              }
               login();
             }}
           >
@@ -89,8 +138,8 @@ export default function LoginScreen() {
             </Pressable>
           </View>
         </View>
-      </LinearGradient>
-    </View>
+      </LinearGradient >
+    </View >
   );
 }
 

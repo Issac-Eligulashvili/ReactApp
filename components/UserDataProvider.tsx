@@ -6,6 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { database } from "../js/supabaseClient";
+import { userDataState } from "@/states/StoreStates";
 
 type League = {
   teamsPlaying: []; // Array of players in this league
@@ -26,7 +27,6 @@ type UserData = {
 
 interface DataContextType {
   userData: UserData | null;
-  setData: React.Dispatch<React.SetStateAction<UserData | null>>;
   loading: boolean;
 }
 
@@ -37,8 +37,9 @@ interface DataProviderProps {
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  const [userData, setData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const userData = userDataState((state) => state.userData);
+  const setUserData = userDataState((state) => state.setUserData);
 
   useEffect(() => {
     async function getUserData() {
@@ -49,6 +50,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       };
 
       const { data } = await database.auth.getUser();
+      console.log(data);
 
       userData.id = data?.user?.id!;
 
@@ -73,15 +75,17 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       userData.leaguesIsInIDS =
         leaguesUserIsIn?.map((league) => league.leagueID) ?? [];
 
-      setData(userData);
+
       setLoading(false);
+
+      setUserData(userData);
     }
 
     getUserData();
   }, []);
 
   return (
-    <DataContext.Provider value={{ userData, setData, loading }}>
+    <DataContext.Provider value={{ userData, loading }}>
       {children}
     </DataContext.Provider>
   );
@@ -90,7 +94,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 // Hook to access context data
 export const useData = (): DataContextType => {
   const context = useContext(DataContext);
-
   if (context === undefined) {
     throw new Error("useData must be used within a DataProvider");
   }
