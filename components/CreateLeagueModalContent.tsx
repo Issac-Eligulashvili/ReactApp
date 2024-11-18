@@ -9,6 +9,7 @@ import { userDataState } from "@/states/StoreStates";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "./type";
 import { StackNavigationProp } from "@react-navigation/stack";
+import Clipboard from '@react-native-clipboard/clipboard';
 
 type AuthScreenNavigationProp = StackNavigationProp<
      RootStackParamList,
@@ -211,7 +212,11 @@ function CreateLeaugeModalContent() {
                                              padding: 5,
                                              borderRadius: 5,
                                              backgroundColor: "#0B1124"
-                                        }}>
+                                        }}
+                                             onPress={() => {
+                                                  Clipboard.setString(leagueCreatedID);
+                                                  alert("Copied League ID to Clipboard")
+                                             }}>
                                              <MaterialIcons name="content-copy" size={24} color="white" />
                                         </Pressable>
                                    </View>

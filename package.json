@@ -44,6 +44,7 @@
     "@gluestack-ui/toast": "^1.0.8",
     "@gluestack-ui/tooltip": "^0.1.35",
     "@legendapp/motion": "^2.4.0",
+    "@react-native-clipboard/clipboard": "^1.15.0",
     "@react-native-community/picker": "^1.8.0",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/native": "^7.0.2",
