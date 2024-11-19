@@ -31,6 +31,7 @@ function CreateLeaugeModalContent() {
      const navigation = useNavigation<AuthScreenNavigationProp>();
      const progressAnim = useRef(new Animated.Value(1)).current;
      const setIsPicked = useModalStore((state) => state.setIsPicked);
+     const [isCoppied, setIsCoppied] = useState(false);
 
      async function createLeauge() {
           const id = userData?.id;
@@ -215,9 +216,14 @@ function CreateLeaugeModalContent() {
                                         }}
                                              onPress={() => {
                                                   Clipboard.setString(leagueCreatedID);
-                                                  alert("Copied League ID to Clipboard")
+                                                  setIsCoppied(true);
+                                                  setTimeout(() => {
+                                                       setIsCoppied(false);
+                                                  }, 1000);
                                              }}>
-                                             <MaterialIcons name="content-copy" size={24} color="white" />
+                                             {isCoppied ? <MaterialIcons name="check" size={24} color="white" /> :
+                                                  <MaterialIcons name="content-copy" size={24} color="white" />
+                                             }
                                         </Pressable>
                                    </View>
                                    <Pressable style={[styles.btn, { marginTop: 20 }]} onPress={() => {

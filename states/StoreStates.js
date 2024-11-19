@@ -36,3 +36,8 @@ export const allLeaguesData = create((set) => ({
      setLeaguesData: (league) => set({ fetchedLeagues: league }),
      setLoading: (isLoading) => set({ loading: isLoading }),
 }))
+
+export const currentLeagueNav = create((set) => ({
+     currnentTab: null,
+     setCurrentTab: (tab) => set({ currentTab: tab }),
+}))

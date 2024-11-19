@@ -1,0 +1,166 @@
+import { View, Text, ScrollView, Pressable, StyleSheet, Image } from "react-native";
+import React, { useState } from "react";
+import { useCurrentLeagueStore, userDataState } from '@/states/StoreStates';
+import { MaterialIcons } from "@expo/vector-icons";
+import Foundation from '@expo/vector-icons/Foundation';
+import Clipboard from '@react-native-clipboard/clipboard';
+
+
+export default function DraftTab() {
+     const userData = userDataState((state) => state.userData);
+     const userDataForCurrentLeague = userDataState((state) => state.userDataForCurrentLeague);
+     const currentLeagueData = useCurrentLeagueStore((state) => state.currentLeagueData);
+     const currentLeagueID = useCurrentLeagueStore((state) => state.currentLeagueID);
+     const [isCoppied, setIsCoppied] = useState(false);
+
+     let players = [];
+
+     for (let i = 0; i < currentLeagueData.numPlayers; i++) {
+          let crown: any = [];
+
+          if (currentLeagueData.teamsPlaying[i]) {
+               if (currentLeagueData.teamsPlaying[i].isAdmin) {
+                    crown.push(<Foundation name="crown" size={16} color="#fdb640" style={{
+                         marginLeft: 5
+                    }} />)
+               } else {
+                    crown.push(null);
+               }
+
+               if (i === 0) {
+                    players.push(
+                         <View style={{
+                              flexDirection: "row",
+                              alignItems: "center"
+                         }}>
+                              <Text style={styles.listText}>
+                                   {i + 1}.  {currentLeagueData.teamsPlaying[i].playerName}
+                              </Text>
+                              {crown[0]}
+                         </View>
+                    );
+               } else {
+                    players.push(
+                         <View style={{
+                              flexDirection: "row",
+                              alignItems: "center"
+                         }}>
+                              <Text style={[styles.listText, { marginTop: 10 }]}>
+                                   {i + 1}.  {currentLeagueData.teamsPlaying[i].playerName}
+                              </Text>
+                              {crown[0]}
+                         </View>
+                    )
+               }
+          } else {
+               players.push(
+                    <Text style={[styles.listText, { marginTop: 10 }]}>
+                         {i + 1}.  Team {i + 1}
+                    </Text>
+               )
+          }
+     }
+
+     return (
+          <View style={{
+               paddingHorizontal: 37,
+               width: "100%"
+          }}>
+               <View style={{
+                    marginTop: 23
+               }}>
+                    <View style={{
+                         flexDirection: "row",
+                         justifyContent: "space-between"
+                    }}>
+                         <View>
+                              <Text style={{
+                                   fontFamily: "tex",
+                                   fontSize: 16,
+                                   color: "rgba(255,255,255, 1)"
+                              }}>
+                                   Invite friends to play
+                              </Text>
+                              <Text style={{
+                                   fontFamily: "tex",
+                                   fontSize: 12,
+                                   color: "rgba(255,255,255,0.55)"
+                              }}>
+                                   Copy the link and share with your friends
+                              </Text>
+                         </View>
+                         <Text style={{
+                              fontFamily: "tex",
+                              fontSize: 12,
+                              color: "rgba(255,255,255, 1)"
+                         }}>
+                              {currentLeagueData.teamsPlaying.length} / {currentLeagueData.numPlayers}
+                         </Text>
+                    </View>
+                    <View style={{ marginTop: 14 }}>
+                         <View style={{
+                              padding: 10,
+                              borderRadius: 10,
+                              flexDirection: 'row',
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              backgroundColor: "rgb(87, 72, 105)",
+                         }}>
+                              <Text style={{
+                                   color: "white",
+                                   fontFamily: "tex",
+                                   overflow: "hidden",
+                                   flex: 1,
+                                   fontSize: 16,
+                              }}
+                                   numberOfLines={1}
+                              >
+                                   {currentLeagueID}
+                              </Text>
+                              <Pressable style={{
+                                   padding: 5,
+                                   borderRadius: 5,
+                                   backgroundColor: "#0B1124"
+                              }}
+                                   onPress={() => {
+                                        Clipboard.setString(currentLeagueID);
+                                        setIsCoppied(true);
+                                        setTimeout(() => {
+                                             setIsCoppied(false);
+                                        }, 1000);
+                                   }}>
+                                   {isCoppied ? <MaterialIcons name="check" size={24} color="white" /> :
+                                        <MaterialIcons name="content-copy" size={24} color="white" />
+                                   }
+                              </Pressable>
+                         </View>
+                    </View >
+               </View>
+               <Text style={{
+                    color: "white",
+                    marginVertical: 20,
+                    fontFamily: "tex",
+                    fontSize: 16,
+               }}>
+                    Teams in League
+               </Text>
+               <ScrollView style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 21,
+                    backgroundColor: "#574869",
+                    borderRadius: 10,
+               }}>
+                    {players}
+
+               </ScrollView>
+          </View>
+     )
+}
+
+const styles = StyleSheet.create({
+     listText: {
+          color: "white",
+          fontSize: 16,
+          fontFamily: "tex"
+     }
+})

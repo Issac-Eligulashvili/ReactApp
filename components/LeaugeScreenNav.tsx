@@ -2,13 +2,12 @@ import { Dropdown } from 'react-native-element-dropdown';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { MaterialIcons } from "@expo/vector-icons";
-import { useCurrentLeagueStore, allLeaguesData, useModalStore } from '@/states/StoreStates';
+import { useCurrentLeagueStore, allLeaguesData, useModalStore, currentLeagueNav } from '@/states/StoreStates';
 import { userDataState } from '@/states/StoreStates';
 import { database } from '@/js/supabaseClient';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import CustomModal from './ModalComponent';
-import isEqual, { random } from 'lodash';
 
 let navLinks: string[] = [];
 
@@ -16,6 +15,7 @@ type League = {
      "league-name": string; // Array of players in this league
      // other league properties
      leagueID: string;
+     isDrafted: boolean;
 };
 
 export default function LeagueScreenNav() {
@@ -35,6 +35,7 @@ export default function LeagueScreenNav() {
      const [loading, setLoading] = useState(true);
      const [activeButton, setActiveButton] = useState<number>(1);
      const navigation = useNavigation();
+     const setCurrentTab = currentLeagueNav((state) => state.setCurrentTab);
 
      let data: any[] = [];
 
@@ -49,12 +50,14 @@ export default function LeagueScreenNav() {
 
      useEffect(() => {
           setIsPicked(null);
+          const isDrafted = currentLeagueData.isDrafted;
+          isDrafted ? setCurrentTab("Matchup") : setCurrentTab("Draft");
      }, [])
 
      useEffect(() => {
           setUserDataForCurrentLeague(currentLeagueData.teamsPlaying.find((player: { playerID: any; }) => player.playerID === userData.id));
           const isDrafted = currentLeagueData.isDrafted;
-          navLinks = ["Teams", "", "Players", "League"];
+          navLinks = ["Team", "", "Players", "League"];
           isDrafted ? navLinks[1] = "Matchup" : navLinks[1] = "Draft";
      }, [currentLeagueData]);
 
@@ -86,10 +89,12 @@ export default function LeagueScreenNav() {
                                    const response = await database.from("leagues").select("").eq('leagueID', item.value);
 
                                    if (!response.error) {
+                                        const leagueData = response.data[0] as unknown as League;
                                         setCurrentLeagueData(response.data[0]);
+                                        const isDrafted = leagueData.isDrafted;
+                                        isDrafted ? setCurrentTab("Matchup") : setCurrentTab("Draft");
+                                        setActiveButton(1);
                                    }
-                                   console.log('Selected League ID', item.value);
-                                   console.log(userDataForCurrentLeague);
                               }}
                               renderItem={(item) => (
                                    <View style={styles.item}>
@@ -133,6 +138,7 @@ export default function LeagueScreenNav() {
                          ]}
                               onPress={() => {
                                    setActiveButton(index)
+                                   setCurrentTab(link)
                               }}
                          >
                               <Text style={[{
@@ -188,7 +194,11 @@ export default function LeagueScreenNav() {
                               const response = await database.from("leagues").select("").eq('leagueID', randomLeagueID);
 
                               if (!response.error) {
+                                   const leagueData = response.data[0] as unknown as League;
                                    setCurrentLeagueData(response.data[0]);
+                                   const isDrafted = leagueData.isDrafted;
+                                   isDrafted ? setCurrentTab("Matchup") : setCurrentTab("Draft");
+                                   setActiveButton(1);
                               }
 
                               setLeaguesData(data);
