@@ -9,12 +9,12 @@ import {
   SafeAreaView
 } from "react-native";
 import { database } from "../js/supabaseClient";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useData } from "../components/UserDataProvider";
 import React from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import CustomModal from "../components/ModalComponent";
-import { useModalStore, useCurrentLeagueStore, allLeaguesData } from "@/states/StoreStates";
+import { useModalStore, useCurrentLeagueStore, allLeaguesData, liveData } from "@/states/StoreStates";
 import CreateLeaugeModalContent from "@/components/CreateLeagueModalContent";
 import Footer from "@/components/Footer";
 import { useNavigation } from "@react-navigation/native";
@@ -76,6 +76,7 @@ function HomeScreen() {
   const setCurrentLeagueData = useCurrentLeagueStore((state) => state.setCurrentLeagueData);
   const isPicked = useModalStore((state) => state.isPicked);
   const setIsPicked = useModalStore((state) => state.setIsPicked);
+  const livePlayerData = liveData((state) => state.livePlayerData);
 
 
   useEffect(() => {

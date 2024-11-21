@@ -1,3 +1,4 @@
+import { P } from "@expo/html-elements";
 import { create } from "zustand";
 
 export const useModalStore = create((set) => ({
@@ -40,4 +41,23 @@ export const allLeaguesData = create((set) => ({
 export const currentLeagueNav = create((set) => ({
      currnentTab: null,
      setCurrentTab: (tab) => set({ currentTab: tab }),
+}))
+
+export const liveData = create((set) => ({
+     livePlayerData: [],
+     setLivePlayerData: (data) => set({ livePlayerData: data }),
+     updatePlayerData: (updatedRow) => set((state) => {
+          const rowIndex = state.livePlayerData.findIndex(
+               (row) => row.player === updatedRow.player
+          )
+
+          if (rowIndex != -1) {
+               const updatedData = [...state.livePlayerData]
+               updatedData[rowIndex] = updatedRow;
+               return { livePlayerData: updatedData };
+          } else {
+               // Add the row if it doesn't exist
+               return { livePlayerData: [...state.livePlayerData, updatedRow] };
+          }
+     })
 }))

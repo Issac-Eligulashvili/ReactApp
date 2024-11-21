@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useCurrentLeagueStore, userDataState } from '@/states/StoreStates';
 import { MaterialIcons } from "@expo/vector-icons";
 import Foundation from '@expo/vector-icons/Foundation';
-import Clipboard from '@react-native-clipboard/clipboard';
+import * as Clipboard from 'expo-clipboard';
 
 
 export default function DraftTab() {
@@ -27,34 +27,22 @@ export default function DraftTab() {
                     crown.push(null);
                }
 
-               if (i === 0) {
-                    players.push(
-                         <View style={{
-                              flexDirection: "row",
-                              alignItems: "center"
-                         }}>
-                              <Text style={styles.listText}>
-                                   {i + 1}.  {currentLeagueData.teamsPlaying[i].playerName}
-                              </Text>
-                              {crown[0]}
-                         </View>
-                    );
-               } else {
-                    players.push(
-                         <View style={{
-                              flexDirection: "row",
-                              alignItems: "center"
-                         }}>
-                              <Text style={[styles.listText, { marginTop: 10 }]}>
-                                   {i + 1}.  {currentLeagueData.teamsPlaying[i].playerName}
-                              </Text>
-                              {crown[0]}
-                         </View>
-                    )
-               }
+               const playerId = currentLeagueData.teamsPlaying[i].id || `player-${i}`;
+
+               players.push(
+                    <View key={playerId} style={[{
+                         flexDirection: "row",
+                         alignItems: "center"
+                    }, i != 0 ? { marginTop: 10 } : {}]}>
+                         <Text style={styles.listText}>
+                              {i + 1}.  {currentLeagueData.teamsPlaying[i].playerName}
+                         </Text>
+                         {crown[0]}
+                    </View>
+               );
           } else {
                players.push(
-                    <Text style={[styles.listText, { marginTop: 10 }]}>
+                    <Text key={`team-${i}`} style={[styles.listText, { marginTop: 10 }]}>
                          {i + 1}.  Team {i + 1}
                     </Text>
                )

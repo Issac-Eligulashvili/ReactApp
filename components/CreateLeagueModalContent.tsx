@@ -9,7 +9,7 @@ import { userDataState } from "@/states/StoreStates";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "./type";
 import { StackNavigationProp } from "@react-navigation/stack";
-import Clipboard from '@react-native-clipboard/clipboard';
+import * as Clipboard from 'expo-clipboard';
 
 type AuthScreenNavigationProp = StackNavigationProp<
      RootStackParamList,
@@ -33,7 +33,7 @@ function CreateLeaugeModalContent() {
      const setIsPicked = useModalStore((state) => state.setIsPicked);
      const [isCoppied, setIsCoppied] = useState(false);
 
-     async function createLeauge() {
+     async function createLeague() {
           const id = userData?.id;
           const username = userData?.username;
 
@@ -53,8 +53,10 @@ function CreateLeaugeModalContent() {
                teamsPlaying: [{
                     playerID: id,
                     playerName: username,
-                    team: [],
+                    team: { starters: [], bench: [] },
                     isAdmin: true,
+                    wins: 0,
+                    losses: 0
                }],
                'available_players': available_players,
           }).select();
@@ -167,7 +169,7 @@ function CreateLeaugeModalContent() {
                                         const newStep = currentStep + 1;
                                         setCurrentStep(newStep);
                                         updateProgress(newStep);
-                                        await createLeauge();
+                                        await createLeague();
                                    }}>
                                         <Text style={
                                              {

@@ -10,6 +10,7 @@ import CurrentLeagueScreen from "./screens/CurrentLeagueScreen";
 import { RootStackParamList } from "./components/type";
 import { DataProvider } from "./components/UserDataProvider";
 import { FontProvider } from "./components/FontProvider";
+import { RealTimeListener } from "./components/LiveUpdateListener";
 
 const AuthStack = createStackNavigator<RootStackParamList>();
 const HomeStack = createStackNavigator<RootStackParamList>();
@@ -73,12 +74,15 @@ export default function App() {
   }, []);
 
   return (
-    <DataProvider>
-      <FontProvider>
-        <NavigationContainer>
-          {user ? <HomeStackScreen /> : <AuthStackScreen />}
-        </NavigationContainer>
-      </FontProvider>
-    </DataProvider>
+    <>
+      <RealTimeListener />
+      <DataProvider>
+        <FontProvider>
+          <NavigationContainer>
+            {user ? <HomeStackScreen /> : <AuthStackScreen />}
+          </NavigationContainer>
+        </FontProvider>
+      </DataProvider>
+    </>
   );
 }

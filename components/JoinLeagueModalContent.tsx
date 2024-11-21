@@ -46,8 +46,10 @@ export default function JoinLeagueModalContent() {
           teamsPlaying.push({
                playerID: userData.id,
                playerName: userData.username,
-               team: [],
+               team: { starters: [], bench: [] },
                isAdmin: false,
+               wins: 0,
+               losses: 0
           })
 
           leaugeJoiningData.teamsPlaying = teamsPlaying;
