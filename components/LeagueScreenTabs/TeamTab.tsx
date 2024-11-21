@@ -1,37 +1,50 @@
-import { View, Text, ScrollView, Pressable, StyleSheet, Image } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  StyleSheet,
+  Image,
+} from "react-native";
 import React, { useEffect, useState } from "react";
-import { useCurrentLeagueStore, userDataState, liveData } from "@/states/StoreStates";
+import {
+  useCurrentLeagueStore,
+  userDataState,
+  liveData,
+} from "@/states/StoreStates";
 import Feather from "@expo/vector-icons/Feather";
 import Svg, { Path } from "react-native-svg";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import colors from "@/assets/colors";
-import { startMapper } from "react-native-reanimated";
 
 export default function TeamTab() {
   const userData = userDataState((state) => state.userData);
-  const userDataForCL = userDataState((state) => state.userDataForCurrentLeague)
+  const userDataForCL = userDataState(
+    (state) => state.userDataForCurrentLeague
+  );
   const livePlayerData = liveData((state) => state.livePlayerData);
-  const [starterData, setStarterData] = useState([])
+  const [starterData, setStarterData] = useState([]);
+  const [currentTeam, setCurrentTeam] = useState<any>([]);
 
   // let starterData: any[] = [];
 
   useEffect(() => {
     console.log(livePlayerData);
     const getLiveTeamData = () => {
-      setStarterData(livePlayerData.filter((playerRow: any) => {
-        return userDataForCL.team.starters.includes(playerRow.player);
-      }))
-    }
+      setStarterData(
+        livePlayerData.filter((playerRow: any) => {
+          return userDataForCL.team.starters.includes(playerRow.player);
+        })
+      );
+    };
     getLiveTeamData();
   }, [livePlayerData]);
 
   useEffect(() => {
     console.log(starterData);
-  }, [starterData])
+  }, [starterData]);
 
-
-
-  const record = `${userDataForCL.wins} - ${userDataForCL.losses}`
+  const record = `${userDataForCL.wins} - ${userDataForCL.losses}`;
 
   return (
     <View style={{ width: "100%", flexGrow: 1 }}>
@@ -74,7 +87,7 @@ export default function TeamTab() {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
-          marginTop: 5
+          marginTop: 5,
         }}
       >
         <Pressable style={{ alignItems: "center" }}>
@@ -129,267 +142,184 @@ export default function TeamTab() {
           </Text>
         </Pressable>
       </View>
-      <View style={{
-        padding: 16,
-        flexGrow: 1
-      }}>
-        <Text style={{
-          fontFamily: "VisbyCF",
-          color: "white",
-          fontSize: 16
-        }}>
-          Starters
-        </Text>
-        <ScrollView style={{
-          marginTop: 23,
-          flexDirection: "row",
+      <View
+        style={{
+          padding: 16,
           flexGrow: 1,
-          width: '100%'
         }}
-          contentContainerStyle={{
-            width: "100%"
+      >
+        <Text
+          style={{
+            fontFamily: "VisbyCF",
+            color: "white",
+            fontSize: 16,
           }}
         >
-          <View style={{
-            height: 32,
+          Starters
+        </Text>
+        <ScrollView
+          style={{
+            marginTop: 23,
             flexDirection: "row",
-            alignItems: "center",
-            width: '100%',
-          }}>
-            <View style={[{
-              backgroundColor: colors.IGL
-            }, styles.positionBox]}>
-              <Image source={require("@/assets/img/icons/IGLClassSymbol.png")} style={styles.positionImage} />
-            </View>
-            <View style={{
+            flexGrow: 1,
+            width: "100%",
+          }}
+          contentContainerStyle={{
+            width: "100%",
+          }}
+        >
+          <View
+            style={{
+              height: 32,
               flexDirection: "row",
-              justifyContent: "space-between",
-              flexGrow: 1
-            }}>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL")) ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.player ?? "Empty"}</Text>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL"))?.points != null ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.points ?? "-"}</Text>
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <View
+              style={[
+                {
+                  backgroundColor: colors.IGL,
+                },
+                styles.positionBox,
+              ]}
+            >
+              <Image
+                source={require("@/assets/img/icons/IGLClassSymbol.png")}
+                style={styles.positionImage}
+              />
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                flexGrow: 1,
+              }}
+            >
+              <View>
+                <Text
+                  style={[
+                    starterData.find((player: any) =>
+                      player.position.includes("IGL")
+                    )
+                      ? styles.playerName
+                      : styles.empty,
+                    { marginTop: -8 },
+                  ]}
+                >
+                  {starterData.find((player: any) =>
+                    player.position.includes("IGL")
+                  )?.player ?? "Empty"}
+                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    marginTop: -4,
+                  }}
+                >
+                  <Text style={[styles.playerInfoText, { color: colors.IGL }]}>
+                    IGL{" "}
+                  </Text>
+                  <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
+                    •{" "}
+                    {
+                      starterData.find((player: any) =>
+                        player.position.includes("IGL")
+                      )?.teamAbbr
+                    }
+                  </Text>
+                </View>
+              </View>
+              <Text
+                style={
+                  starterData.find((player: any) =>
+                    player.position.includes("IGL")
+                  )?.points != null
+                    ? styles.playerName
+                    : styles.empty
+                }
+              >
+                {starterData.find((player: any) =>
+                  player.position.includes("IGL")
+                )?.points ?? "-"}
+              </Text>
             </View>
           </View>
-          <View style={{
-            height: 32,
-            flexDirection: "row",
-            alignItems: "center",
-            width: '100%',
-            marginTop: 15
-          }}>
-            <View style={[{
-              backgroundColor: colors.IGL
-            }, styles.positionBox]}>
-              <Image source={require("@/assets/img/icons/IGLClassSymbol.png")} style={styles.positionImage} />
-            </View>
-            <View style={{
+          <View
+            style={{
+              height: 32,
               flexDirection: "row",
-              justifyContent: "space-between",
-              flexGrow: 1,
-            }}>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL")) ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.player ?? "Empty"}</Text>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL"))?.points != null ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.points ?? "-"}</Text>
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <View
+              style={[
+                {
+                  backgroundColor: colors.IGL,
+                },
+                styles.positionBox,
+              ]}
+            >
+              <Image
+                source={require("@/assets/img/icons/IGLClassSymbol.png")}
+                style={styles.positionImage}
+              />
             </View>
-          </View>
-          <View style={{
-            height: 32,
-            flexDirection: "row",
-            alignItems: "center",
-            width: '100%',
-            marginTop: 15
-          }}>
-            <View style={[{
-              backgroundColor: colors.IGL
-            }, styles.positionBox]}>
-              <Image source={require("@/assets/img/icons/IGLClassSymbol.png")} style={styles.positionImage} />
-            </View>
-            <View style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              flexGrow: 1
-            }}>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL")) ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.player ?? "Empty"}</Text>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL"))?.points != null ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.points ?? "-"}</Text>
-            </View>
-          </View>
-          <View style={{
-            height: 32,
-            flexDirection: "row",
-            alignItems: "center",
-            width: '100%',
-            marginTop: 15
-          }}>
-            <View style={[{
-              backgroundColor: colors.IGL
-            }, styles.positionBox]}>
-              <Image source={require("@/assets/img/icons/IGLClassSymbol.png")} style={styles.positionImage} />
-            </View>
-            <View style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              flexGrow: 1
-            }}>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL")) ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.player ?? "Empty"}</Text>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL"))?.points != null ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.points ?? "-"}</Text>
-            </View>
-          </View>
-          <View style={{
-            height: 32,
-            flexDirection: "row",
-            alignItems: "center",
-            width: '100%',
-            marginTop: 15
-          }}>
-            <View style={[{
-              backgroundColor: colors.IGL
-            }, styles.positionBox]}>
-              <Image source={require("@/assets/img/icons/IGLClassSymbol.png")} style={styles.positionImage} />
-            </View>
-            <View style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              flexGrow: 1
-            }}>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL")) ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.player ?? "Empty"}</Text>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL"))?.points != null ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.points ?? "-"}</Text>
-            </View>
-          </View>
-          <View style={{
-            height: 32,
-            flexDirection: "row",
-            alignItems: "center",
-            width: '100%',
-            marginTop: 15
-          }}>
-            <View style={[{
-              backgroundColor: colors.IGL
-            }, styles.positionBox]}>
-              <Image source={require("@/assets/img/icons/IGLClassSymbol.png")} style={styles.positionImage} />
-            </View>
-            <View style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              flexGrow: 1
-            }}>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL")) ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.player ?? "Empty"}</Text>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL"))?.points != null ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.points ?? "-"}</Text>
-            </View>
-          </View>
-          <View style={{
-            height: 32,
-            flexDirection: "row",
-            alignItems: "center",
-            width: '100%',
-            marginTop: 15
-          }}>
-            <View style={[{
-              backgroundColor: colors.IGL
-            }, styles.positionBox]}>
-              <Image source={require("@/assets/img/icons/IGLClassSymbol.png")} style={styles.positionImage} />
-            </View>
-            <View style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              flexGrow: 1
-            }}>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL")) ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.player ?? "Empty"}</Text>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL"))?.points != null ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.points ?? "-"}</Text>
-            </View>
-          </View>
-          <View style={{
-            height: 32,
-            flexDirection: "row",
-            alignItems: "center",
-            width: '100%',
-            marginTop: 15
-          }}>
-            <View style={[{
-              backgroundColor: colors.IGL
-            }, styles.positionBox]}>
-              <Image source={require("@/assets/img/icons/IGLClassSymbol.png")} style={styles.positionImage} />
-            </View>
-            <View style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              flexGrow: 1
-            }}>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL")) ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.player ?? "Empty"}</Text>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL"))?.points != null ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.points ?? "-"}</Text>
-            </View>
-          </View>
-          <View style={{
-            height: 32,
-            flexDirection: "row",
-            alignItems: "center",
-            width: '100%',
-            marginTop: 15
-          }}>
-            <View style={[{
-              backgroundColor: colors.IGL
-            }, styles.positionBox]}>
-              <Image source={require("@/assets/img/icons/IGLClassSymbol.png")} style={styles.positionImage} />
-            </View>
-            <View style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              flexGrow: 1
-            }}>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL")) ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.player ?? "Empty"}</Text>
-              <Text style={
-                starterData.find((player: any) => player.position.includes("IGL"))?.points != null ? styles.playerName :
-                  styles.empty
-              }>{starterData.find((player: any) => player.position.includes("IGL"))?.points ?? "-"}</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                flexGrow: 1,
+              }}
+            >
+              <View>
+                <Text
+                  style={[
+                    starterData.find((player: any) =>
+                      player.position.includes("IGL")
+                    )
+                      ? styles.playerName
+                      : styles.empty,
+                    { marginTop: -8 },
+                  ]}
+                >
+                  {starterData.find((player: any) =>
+                    player.position.includes("IGL")
+                  )?.player ?? "Empty"}
+                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    marginTop: -4,
+                  }}
+                >
+                  <Text style={[styles.playerInfoText, { color: colors.IGL }]}>
+                    IGL{" "}
+                  </Text>
+                  <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
+                    •{" "}
+                    {
+                      starterData.find((player: any) =>
+                        player.position.includes("IGL")
+                      )?.teamAbbr
+                    }
+                  </Text>
+                </View>
+              </View>
+              <Text
+                style={
+                  starterData.find((player: any) =>
+                    player.position.includes("IGL")
+                  )?.points != null
+                    ? styles.playerName
+                    : styles.empty
+                }
+              >
+                {starterData.find((player: any) =>
+                  player.position.includes("IGL")
+                )?.points ?? "-"}
+              </Text>
             </View>
           </View>
         </ScrollView>
@@ -405,20 +335,24 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16
+    marginRight: 16,
   },
   positionImage: {
     height: 14,
-    width: 14
+    width: 14,
   },
   playerName: {
     fontFamily: "tex",
     color: "white",
-    fontSize: 16
+    fontSize: 16,
   },
   empty: {
     fontFamily: "tex",
     color: colors.subtext,
-    fontSize: 16
-  }
-})
+    fontSize: 16,
+  },
+  playerInfoText: {
+    fontFamily: "tex",
+    fontSize: 8,
+  },
+});
