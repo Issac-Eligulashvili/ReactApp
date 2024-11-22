@@ -8,6 +8,8 @@ export const useModalStore = create((set) => ({
      setIsPicked: (value) => set({ isPicked: value }),
      isDeletedLeagueOpened: false,
      setIsDeletedLeagueOpened: (value) => set({ isDeletedLeagueOpened: (value) }),
+     isSwapOpened: false,
+     setIsSwapOpened: (value) => set({ isSwapOpened: value }),
 }))
 
 export const useModalDropdownStore = create((set) => ({

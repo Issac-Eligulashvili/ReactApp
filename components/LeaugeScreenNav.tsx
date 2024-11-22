@@ -7,7 +7,7 @@ import { userDataState } from '@/states/StoreStates';
 import { database } from '@/js/supabaseClient';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
-import CustomModal from './ModalComponent';
+import { CustomModal } from './ModalComponent';
 
 let navLinks: string[] = [];
 

@@ -11,11 +11,26 @@ import {
   useCurrentLeagueStore,
   userDataState,
   liveData,
+  useModalStore,
 } from "@/states/StoreStates";
 import Feather from "@expo/vector-icons/Feather";
 import Svg, { Path } from "react-native-svg";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import colors from "@/assets/colors";
+import { positionIcons, positionAbbriviations } from "@/assets/positionIcons";
+import { SlideModal } from "../ModalComponent";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { SvgUri } from "react-native-svg";
+import { LogoSVGComponent } from "../FetchLeagueSVG";
+
+type Player = {
+  position: string;
+  player: string;
+  "image_link": string;
+  team: string;
+  teamAbbr: string
+}
+
 
 export default function TeamTab() {
   const userData = userDataState((state) => state.userData);
@@ -24,27 +39,66 @@ export default function TeamTab() {
   );
   const livePlayerData = liveData((state) => state.livePlayerData);
   const [starterData, setStarterData] = useState([]);
-  const [currentTeam, setCurrentTeam] = useState<any>([]);
+  const [starters, setStarters] = useState<any>([]);
+  const [startersComponent, setStartersComponent] = useState<any>([]);
+  const setIsSwapOpened = useModalStore((state) => state.setIsSwapOpened);
+  const isSwapOpened = useModalStore((state) => state.isSwapOpened);
+  const [posToSwap, setPosToSwap] = useState("");
+  const [playerToSwap, setPlayerToSwap] = useState<Player | null>(null);
+  const [swappablePlayers, setSwappablePlayers] = useState<any>([]);
 
-  // let starterData: any[] = [];
+  const startersOrder = ["IGL", "Flex", "Flex", "Duelist", "Initiator", "Controller", "Sentinel"]
 
   useEffect(() => {
-    console.log(livePlayerData);
+    setStarters(userDataForCL.team.starters);
+  }, [])
+
+  useEffect(() => {
     const getLiveTeamData = () => {
       setStarterData(
         livePlayerData.filter((playerRow: any) => {
-          return userDataForCL.team.starters.includes(playerRow.player);
+          return starters.includes(playerRow.player)
+            || starters.includes(playerRow.player);
         })
       );
     };
     getLiveTeamData();
-  }, [livePlayerData]);
+  }, [livePlayerData, starters]);
 
   useEffect(() => {
-    console.log(starterData);
+    let players = starterData.filter((player: any) => {
+      return player.position === posToSwap && player != playerToSwap;
+    })
+    setSwappablePlayers(players);
+  }, [playerToSwap])
+
+  useEffect(() => {
+    console.log(swappablePlayers);
+  }, [swappablePlayers])
+
+  useEffect(() => {
+
+    const remainingPlayers = [...starterData];
+
+    let startersComponent = startersOrder.map((position) => {
+      const index = remainingPlayers.findIndex((player: any) => {
+        return player.position == position;
+      })
+
+      if (index != -1) {
+        const [assignedPlayer] = remainingPlayers.splice(index, 1);
+        return assignedPlayer;
+      } else {
+        return { player: "Empty", position: position }
+      }
+    })
+
+    setStartersComponent(startersComponent);
   }, [starterData]);
 
   const record = `${userDataForCL.wins} - ${userDataForCL.losses}`;
+
+
 
   return (
     <View style={{ width: "100%", flexGrow: 1 }}>
@@ -168,160 +222,128 @@ export default function TeamTab() {
             width: "100%",
           }}
         >
-          <View
-            style={{
-              height: 32,
-              flexDirection: "row",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <View
-              style={[
-                {
-                  backgroundColor: colors.IGL,
-                },
-                styles.positionBox,
-              ]}
-            >
-              <Image
-                source={require("@/assets/img/icons/IGLClassSymbol.png")}
-                style={styles.positionImage}
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                flexGrow: 1,
-              }}
-            >
-              <View>
-                <Text
+          {startersComponent.map((player: any, index: number) => {
+            return (
+              <View
+                style={[{
+                  height: 32,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "100%",
+                }, index === 0 ? {} : { marginTop: 15 }]}
+                key={index}
+              >
+                <Pressable
                   style={[
-                    starterData.find((player: any) =>
-                      player.position.includes("IGL")
-                    )
-                      ? styles.playerName
-                      : styles.empty,
-                    { marginTop: -8 },
+                    {
+                      backgroundColor: colors[player?.position as keyof typeof colors],
+                    },
+                    styles.positionBox,
                   ]}
+                  onPress={() => {
+                    setPosToSwap(player?.position);
+                    setPlayerToSwap(player);
+                    setIsSwapOpened(true);
+                  }}
                 >
-                  {starterData.find((player: any) =>
-                    player.position.includes("IGL")
-                  )?.player ?? "Empty"}
-                </Text>
+                  <Image
+                    source={positionIcons[player?.position as keyof typeof positionIcons]}
+                    style={styles.positionImage}
+                  />
+                </Pressable>
                 <View
                   style={{
                     flexDirection: "row",
-                    marginTop: -4,
+                    justifyContent: "space-between",
+                    flexGrow: 1,
                   }}
                 >
-                  <Text style={[styles.playerInfoText, { color: colors.IGL }]}>
-                    IGL{" "}
-                  </Text>
-                  <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
-                    •{" "}
-                    {
-                      starterData.find((player: any) =>
-                        player.position.includes("IGL")
-                      )?.teamAbbr
+                  <View>
+                    <Text
+                      style={
+                        player.player != "Empty"
+                          ? [styles.playerName]
+                          : styles.empty
+                      }
+                    >
+                      {player.player}
+                    </Text>
+                    {player.player != "Empty" ?
+                      (<View
+                        style={{
+                          flexDirection: "row",
+                          marginTop: -4,
+                        }}
+                      >
+                        <Text style={[styles.playerInfoText, { color: colors[player?.position as keyof typeof colors] }]}>
+                          {positionAbbriviations[player?.position as keyof typeof positionAbbriviations].toUpperCase()}{" "}
+                        </Text>
+                        <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
+                          •{" "}
+                          {
+                            player?.teamAbbr
+                          }
+                        </Text>
+                      </View>) : null
                     }
+                  </View>
+                  <Text
+                    style={
+                      player.points != null
+                        ? [styles.playerName]
+                        : styles.empty
+                    }
+                  >
+                    {player?.points ?? "-"}
                   </Text>
                 </View>
               </View>
-              <Text
-                style={
-                  starterData.find((player: any) =>
-                    player.position.includes("IGL")
-                  )?.points != null
-                    ? styles.playerName
-                    : styles.empty
-                }
-              >
-                {starterData.find((player: any) =>
-                  player.position.includes("IGL")
-                )?.points ?? "-"}
-              </Text>
-            </View>
-          </View>
-          <View
-            style={{
-              height: 32,
-              flexDirection: "row",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <View
-              style={[
-                {
-                  backgroundColor: colors.IGL,
-                },
-                styles.positionBox,
-              ]}
-            >
-              <Image
-                source={require("@/assets/img/icons/IGLClassSymbol.png")}
-                style={styles.positionImage}
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                flexGrow: 1,
-              }}
-            >
-              <View>
-                <Text
+            )
+          })}
+
+          <SlideModal isOpen={isSwapOpened}>
+            <View style={{
+              backgroundColor: "rgb(46, 26, 71)",
+              padding: 10,
+              borderTopRightRadius: 10,
+              borderTopLeftRadius: 10,
+              width: "100%"
+            }}>
+              <View style={{ justifyContent: "space-between", flexDirection: "row", alignItems: "center" }}>
+                <View style={{ height: 24, width: 24 }} />
+                <Text style={{
+                  color: "white",
+                  fontFamily: "tex",
+                  fontSize: 20,
+                  textAlign: "center"
+                }}>
+                  Swap Players
+                </Text>
+                <Pressable onPress={() => { setIsSwapOpened(false); setPlayerToSwap(null) }}>
+                  <MaterialIcons name="close" size={24} color="white" />
+                </Pressable>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 10 }}>
+                <View
                   style={[
-                    starterData.find((player: any) =>
-                      player.position.includes("IGL")
-                    )
-                      ? styles.playerName
-                      : styles.empty,
-                    { marginTop: -8 },
+                    {
+                      backgroundColor: colors[playerToSwap?.position as keyof typeof colors],
+                    },
+                    styles.positionBox,
                   ]}
                 >
-                  {starterData.find((player: any) =>
-                    player.position.includes("IGL")
-                  )?.player ?? "Empty"}
-                </Text>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    marginTop: -4,
-                  }}
-                >
-                  <Text style={[styles.playerInfoText, { color: colors.IGL }]}>
-                    IGL{" "}
-                  </Text>
-                  <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
-                    •{" "}
-                    {
-                      starterData.find((player: any) =>
-                        player.position.includes("IGL")
-                      )?.teamAbbr
-                    }
-                  </Text>
+                  <Image
+                    source={positionIcons[playerToSwap?.position as keyof typeof positionIcons]}
+                    style={styles.positionImage}
+                  />
+                </View>
+                <View style={styles.playerImageContainer}>
+                  <Image source={{ uri: `https:${playerToSwap?.image_link}` }} style={styles.playerImage} />
                 </View>
               </View>
-              <Text
-                style={
-                  starterData.find((player: any) =>
-                    player.position.includes("IGL")
-                  )?.points != null
-                    ? styles.playerName
-                    : styles.empty
-                }
-              >
-                {starterData.find((player: any) =>
-                  player.position.includes("IGL")
-                )?.points ?? "-"}
-              </Text>
             </View>
-          </View>
+          </SlideModal>
+          <LogoSVGComponent uri={`https://issac-eligulashvili.github.io/logo-images/All_Gamers.svg`} />
         </ScrollView>
       </View>
     </View>
@@ -355,4 +377,16 @@ const styles = StyleSheet.create({
     fontFamily: "tex",
     fontSize: 8,
   },
+  playerImage: {
+    height: 32,
+    width: 32,
+  },
+  playerImageContainer: {
+    height: 32,
+    width: 32,
+    borderRadius: "50%",
+    overflow: "hidden",
+    backgroundColor: "white",
+    position: "relative"
+  }
 });

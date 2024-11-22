@@ -6,7 +6,7 @@ type CustomModalProps = ModalProps & {
   children: React.ReactNode;
 };
 
-export default function CustomModal({
+export function CustomModal({
   children,
   isOpen,
   ...props
@@ -20,6 +20,26 @@ export default function CustomModal({
       {...props}
     >
       <View style={{ flex: 1, backgroundColor: "rgba(255, 255, 255,0.1)", justifyContent: 'center', alignItems: "center" }}>
+        {children}
+      </View>
+    </RNModal>
+  );
+}
+
+export function SlideModal({
+  children,
+  isOpen,
+  ...props
+}: CustomModalProps) {
+  return (
+    <RNModal
+      visible={isOpen}
+      animationType="slide"
+      statusBarTranslucent
+      transparent
+      {...props}
+    >
+      <View style={{ flex: 1, justifyContent: 'flex-end', alignItems: "center" }}>
         {children}
       </View>
     </RNModal>
