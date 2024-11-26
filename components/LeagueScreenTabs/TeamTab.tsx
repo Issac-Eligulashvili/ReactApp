@@ -20,15 +20,16 @@ import colors from "@/assets/colors";
 import { positionIcons, positionAbbriviations } from "@/assets/positionIcons";
 import { SlideModal } from "../ModalComponent";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { SvgUri } from "react-native-svg";
 import { LogoSVGComponent } from "../FetchLeagueSVG";
+import { database } from "@/js/supabaseClient";
 
 type Player = {
   position: string;
   player: string;
   "image_link": string;
   team: string;
-  teamAbbr: string
+  teamAbbr: string;
+  points?: number
 }
 
 
@@ -41,43 +42,154 @@ export default function TeamTab() {
   const [starterData, setStarterData] = useState([]);
   const [starters, setStarters] = useState<any>([]);
   const [startersComponent, setStartersComponent] = useState<any>([]);
+  const [benchData, setBenchData] = useState([]);
+  const [bench, setBench] = useState<any>([]);
   const setIsSwapOpened = useModalStore((state) => state.setIsSwapOpened);
   const isSwapOpened = useModalStore((state) => state.isSwapOpened);
   const [posToSwap, setPosToSwap] = useState("");
   const [playerToSwap, setPlayerToSwap] = useState<Player | null>(null);
-  const [swappablePlayers, setSwappablePlayers] = useState<any>([]);
+  const [starterSwappablePlayers, setStarterSwappablePlayers] = useState<any>([]);
+  const [benchSwappablePlayers, setBenchSwappablePlayers] = useState<any>([]);
+  const [isBench, setIsBench] = useState(false);
+  const currentLeagueData = useCurrentLeagueStore((state) => state.currentLeagueData);
+  const currentLeagueID = useCurrentLeagueStore((state) => state.currentLeagueID);
+  const [benchComponent, setBenchComponent] = useState<any>([]);
+
+
 
   const startersOrder = ["IGL", "Flex", "Flex", "Duelist", "Initiator", "Controller", "Sentinel"]
+  const benchOrder = [0, 1]
 
   useEffect(() => {
     setStarters(userDataForCL.team.starters);
+    setBench(userDataForCL.team.bench);
   }, [])
 
   useEffect(() => {
     const getLiveTeamData = () => {
-      setStarterData(
-        livePlayerData.filter((playerRow: any) => {
-          return starters.includes(playerRow.player)
-            || starters.includes(playerRow.player);
-        })
-      );
+      const filtered = livePlayerData.filter((playerRow: any) => {
+        return starters.includes(playerRow.player)
+      }).sort(
+        (a: any, b: any) =>
+          starters.indexOf(a.player) - starters.indexOf(b.player)
+      )
+
+      setStarterData(filtered);
     };
     getLiveTeamData();
   }, [livePlayerData, starters]);
 
   useEffect(() => {
+    const getLiveTeamData = () => {
+      const filtered = livePlayerData.filter((playerRow: any) => {
+        return bench.includes(playerRow.player)
+      }).sort(
+        (a: any, b: any) =>
+          bench.indexOf(a.player) - bench.indexOf(b.player)
+      )
+
+      setBenchData(filtered);
+    };
+    getLiveTeamData();
+  }, [livePlayerData, bench]);
+
+  useEffect(() => {
     let players = starterData.filter((player: any) => {
       return player.position === posToSwap && player != playerToSwap;
     })
-    setSwappablePlayers(players);
+    setStarterSwappablePlayers(players);
+
+    let benchPlayers = benchData.filter((player: any) => {
+      return player.position === posToSwap && player != playerToSwap;
+    })
+    setBenchSwappablePlayers(benchPlayers)
   }, [playerToSwap])
 
-  useEffect(() => {
-    console.log(swappablePlayers);
-  }, [swappablePlayers])
+  async function swapStarters(name: string) {
+    const startersClone = [...starters];
+    const benchClone = [...bench]
+    if (!isBench) {
+      const toSwapName = playerToSwap?.player;
+      const swappingName = name;
+      const indexToSwap = startersClone.indexOf(toSwapName);
+      const swappingIndex = startersClone.indexOf(swappingName);
+      startersClone[indexToSwap] = swappingName;
+      startersClone[swappingIndex] = toSwapName;
+      setStarters(startersClone)
+    } else {
+      const toSwapName = playerToSwap?.player;
+      const swappingName = name;
+      const indexToSwap = bench.indexOf(toSwapName);
+      const swappingIndex = startersClone.indexOf(swappingName);
+      startersClone[swappingIndex] = toSwapName;
+      benchClone[indexToSwap] = swappingName;
+      setStarters(startersClone);
+      setBench(benchClone);
+    }
+
+    userDataForCL.team.starters = startersClone;
+    userDataForCL.team.bench = benchClone;
+
+    const currentTeamsPlaying = currentLeagueData.teamsPlaying;
+    const playerTeamIndex = currentTeamsPlaying.findIndex((player: any) => {
+      return player.playerID === userData.id
+    })
+    currentTeamsPlaying[playerTeamIndex].team.starters = startersClone;
+    currentTeamsPlaying[playerTeamIndex].team.bench = benchClone;
+
+
+    const response = await database
+      .from("leagues")
+      .update({ teamsPlaying: currentTeamsPlaying })
+      .eq("leagueID", currentLeagueID)
+
+    if (response.error) {
+      console.log("error");
+    }
+  }
+
+  async function swapBenchStarter(name: string) {
+    const benchClone = [...bench];
+    const startersClone = [...starters];
+    const toSwapName = playerToSwap?.player;
+    const swappingName = name;
+    const indexToSwap = startersClone.indexOf(toSwapName);
+    const swappingIndex = benchClone.indexOf(swappingName);
+    if (indexToSwap === -1) {
+      startersClone.push(swappingName);
+      benchClone[swappingIndex] = "";
+    } else {
+      startersClone[indexToSwap] = swappingName;
+      benchClone[swappingIndex] = toSwapName;
+    }
+
+    console.log(benchClone);
+
+    setBench(benchClone)
+    setStarters(startersClone)
+
+    userDataForCL.team.starters = startersClone;
+
+    const currentTeamsPlaying = currentLeagueData.teamsPlaying;
+    const playerTeamIndex = currentTeamsPlaying.findIndex((player: any) => {
+      return player.playerID === userData.id
+    })
+    currentTeamsPlaying[playerTeamIndex].team.starters = startersClone;
+    currentTeamsPlaying[playerTeamIndex].team.bench = benchClone;
+
+    console.log(currentTeamsPlaying);
+
+    const response = await database
+      .from("leagues")
+      .update({ teamsPlaying: currentTeamsPlaying })
+      .eq("leagueID", currentLeagueID)
+
+    if (response.error) {
+      console.log("error");
+    }
+  }
 
   useEffect(() => {
-
     const remainingPlayers = [...starterData];
 
     let startersComponent = startersOrder.map((position) => {
@@ -92,14 +204,24 @@ export default function TeamTab() {
         return { player: "Empty", position: position }
       }
     })
-
     setStartersComponent(startersComponent);
   }, [starterData]);
 
+  useEffect(() => {
+    let benchComponent = benchOrder.map((i) => {
+      if (benchData[i]) {
+        const assignedPlayer = benchData[i];
+        return assignedPlayer;
+      } else {
+        return { player: "Empty", position: null }
+      }
+    })
+
+    console.log(benchComponent);
+    setBenchComponent(benchComponent);
+  }, [benchData]);
+
   const record = `${userDataForCL.wins} - ${userDataForCL.losses}`;
-
-
-
   return (
     <View style={{ width: "100%", flexGrow: 1 }}>
       <View
@@ -244,6 +366,7 @@ export default function TeamTab() {
                     setPosToSwap(player?.position);
                     setPlayerToSwap(player);
                     setIsSwapOpened(true);
+                    setIsBench(false);
                   }}
                 >
                   <Image
@@ -301,15 +424,108 @@ export default function TeamTab() {
             )
           })}
 
+          <Text
+            style={{
+              fontFamily: "VisbyCF",
+              color: "white",
+              fontSize: 16,
+              marginVertical: 23,
+            }}
+          >
+            Bench
+          </Text>
+          {benchComponent.map((player: any, index: number) => {
+            return (
+              <View
+                style={[{
+                  height: 32,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "100%",
+                }, index === 0 ? {} : { marginTop: 15 }]}
+                key={index}
+              >
+                <Pressable
+                  style={[
+                    {
+                      backgroundColor: colors.Bench,
+                    },
+                    styles.positionBox,
+                  ]}
+                  onPress={() => {
+                    setPosToSwap(player?.position);
+                    setPlayerToSwap(player);
+                    setIsSwapOpened(true);
+                    setIsBench(true);
+                  }}
+                >
+                  <Text style={{
+                    fontFamily: "The-Bold-Font",
+                    fontSize: 11,
+                    color: "white"
+                  }}>BN</Text>
+                </Pressable>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    flexGrow: 1,
+                  }}
+                >
+                  <View>
+                    <Text
+                      style={
+                        player.player != "Empty"
+                          ? [styles.playerName]
+                          : styles.empty
+                      }
+                    >
+                      {player.player}
+                    </Text>
+                    {player.player != "Empty" ?
+                      (<View
+                        style={{
+                          flexDirection: "row",
+                          marginTop: -4,
+                        }}
+                      >
+                        <Text style={[styles.playerInfoText, { color: colors[player?.position as keyof typeof colors] }]}>
+                          {positionAbbriviations[player?.position as keyof typeof positionAbbriviations].toUpperCase()}{" "}
+                        </Text>
+                        <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
+                          •{" "}
+                          {
+                            player?.teamAbbr
+                          }
+                        </Text>
+                      </View>) : null
+                    }
+                  </View>
+                  <Text
+                    style={
+                      player.points != null
+                        ? [styles.playerName]
+                        : styles.empty
+                    }
+                  >
+                    {player?.points ?? "-"}
+                  </Text>
+                </View>
+              </View>
+            )
+          })}
           <SlideModal isOpen={isSwapOpened}>
             <View style={{
               backgroundColor: "rgb(46, 26, 71)",
-              padding: 10,
               borderTopRightRadius: 10,
               borderTopLeftRadius: 10,
-              width: "100%"
+              width: "100%",
+              paddingBottom: 10
             }}>
-              <View style={{ justifyContent: "space-between", flexDirection: "row", alignItems: "center" }}>
+              <View style={{
+                justifyContent: "space-between", flexDirection: "row", alignItems: "center", paddingHorizontal: 20,
+                paddingTop: 10,
+              }}>
                 <View style={{ height: 24, width: 24 }} />
                 <Text style={{
                   color: "white",
@@ -323,27 +539,303 @@ export default function TeamTab() {
                   <MaterialIcons name="close" size={24} color="white" />
                 </Pressable>
               </View>
-              <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 10 }}>
-                <View
-                  style={[
-                    {
-                      backgroundColor: colors[playerToSwap?.position as keyof typeof colors],
-                    },
-                    styles.positionBox,
-                  ]}
+              <View style={{
+                flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 10, paddingHorizontal: 20,
+              }}>
+                <View style={{ flexDirection: "row" }}>
+                  {!isBench ?
+                    <View
+                      style={[
+                        styles.positionBox,
+                        {
+                          backgroundColor: colors[playerToSwap?.position as keyof typeof colors],
+                          margin: 0
+                        },
+                      ]}
+                    >
+                      <Image
+                        source={positionIcons[playerToSwap?.position as keyof typeof positionIcons]}
+                        style={styles.positionImage}
+                      />
+                    </View> :
+                    <View
+                      style={[
+                        {
+                          backgroundColor: colors.Bench,
+                          margin: 0
+                        },
+                        styles.positionBox,
+                      ]}
+                    >
+                      <Text style={{
+                        fontFamily: "The-Bold-Font",
+                        fontSize: 11,
+                        color: "white"
+                      }}>BN</Text>
+                    </View>
+                  }
+                  <View style={playerToSwap?.player === 'Empty' ?
+                    { width: 16 } :
+                    { marginHorizontal: 16 }
+                  }  >
+                    {playerToSwap?.player === "Empty" ? null :
+                      <View style={styles.playerImageContainer}>
+                        {playerToSwap?.image_link.substring(0, 2) === '//' ?
+                          <Image source={{ uri: `https:${playerToSwap?.image_link}` }} style={styles.playerImage} /> :
+                          <Image source={require("@/assets/img/base/ph/sil.png")} style={styles.playerImage} />
+                        }
+                      </View>}
+                    <LogoSVGComponent uri={`https://issac-eligulashvili.github.io/logo-images/${playerToSwap?.team}.svg`}
+                      style={{
+                        height: 20,
+                        width: 20,
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        transform: [
+                          { translateX: "25%" },
+                          { translateY: "25%" }
+                        ]
+                      }}
+                    />
+                  </View>
+                  <View style={{ justifyContent: "center" }}>
+                    <Text
+                      style={
+                        playerToSwap?.player != "Empty"
+                          ? [styles.playerName]
+                          : styles.empty
+                      }
+                    >
+                      {playerToSwap?.player}
+                    </Text>
+                    {playerToSwap?.player != "Empty" ?
+                      (<View
+                        style={{
+                          flexDirection: "row",
+                          marginTop: -4,
+                        }}
+                      >
+                        <Text style={[styles.playerInfoText, { color: colors[playerToSwap?.position as keyof typeof colors] }]}>
+                          {positionAbbriviations[playerToSwap?.position as keyof typeof positionAbbriviations]?.toUpperCase()}{" "}
+                        </Text>
+                        <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
+                          •{" "}
+                          {
+                            playerToSwap?.teamAbbr
+                          }
+                        </Text>
+                      </View>) : null
+                    }
+                  </View>
+                </View>
+                <Text
+                  style={
+                    playerToSwap?.points != null
+                      ? [styles.playerName]
+                      : styles.empty
+                  }
                 >
-                  <Image
-                    source={positionIcons[playerToSwap?.position as keyof typeof positionIcons]}
-                    style={styles.positionImage}
-                  />
-                </View>
-                <View style={styles.playerImageContainer}>
-                  <Image source={{ uri: `https:${playerToSwap?.image_link}` }} style={styles.playerImage} />
-                </View>
+                  {playerToSwap?.points ?? "-"}
+                </Text>
               </View>
+              <View
+                style={{
+                  borderBottomColor: colors.subtext,
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                  width: "100%",
+                  marginVertical: 15
+                }}
+              />
+              {starterSwappablePlayers.map((player: Player, index: number) => (
+                <Pressable style={[{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingHorizontal: 20,
+                }, index === 0 ? {} : { marginTop: 10 }]}
+                  onPress={() => {
+                    swapStarters(player?.player);
+                    setIsSwapOpened(false);
+                  }}
+                  key={index}
+                >
+                  <View style={{ flexDirection: "row" }}>
+                    <View
+                      style={[
+                        styles.positionBox,
+                        {
+                          backgroundColor: colors[player?.position as keyof typeof colors],
+                          margin: 0
+                        },
+                      ]}
+                    >
+                      <Image
+                        source={positionIcons[player?.position as keyof typeof positionIcons]}
+                        style={styles.positionImage}
+                      />
+                    </View>
+                    <View style={{ marginHorizontal: 16 }}>
+                      <View style={styles.playerImageContainer}>
+                        <Image source={{ uri: `https:${player?.image_link}` }} style={styles.playerImage} />
+                      </View>
+                      <LogoSVGComponent uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
+                        style={{
+                          height: 20,
+                          width: 20,
+                          position: "absolute",
+                          bottom: 0,
+                          right: 0,
+                          transform: [
+                            { translateX: "25%" },
+                            { translateY: "25%" }
+                          ]
+                        }}
+                      />
+                    </View>
+                    <View style={{ justifyContent: "center" }}>
+                      <Text
+                        style={
+                          player?.player != "Empty"
+                            ? [styles.playerName]
+                            : styles.empty
+                        }
+                      >
+                        {player?.player}
+                      </Text>
+                      {player?.player != "Empty" ?
+                        (<View
+                          style={{
+                            flexDirection: "row",
+                            marginTop: -4,
+                          }}
+                        >
+                          <Text style={[styles.playerInfoText, { color: colors[player?.position as keyof typeof colors] }]}>
+                            {positionAbbriviations[player?.position as keyof typeof positionAbbriviations]?.toUpperCase()}{" "}
+                          </Text>
+                          <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
+                            •{" "}
+                            {
+                              player?.teamAbbr
+                            }
+                          </Text>
+                        </View>) : null
+                      }
+                    </View>
+                  </View>
+                  <Text
+                    style={
+                      player?.points != null
+                        ? [styles.playerName]
+                        : styles.empty
+                    }
+                  >
+                    {player?.points ?? "-"}
+                  </Text>
+                </Pressable>
+              ))}
+              <View style={{ paddingHorizontal: 20 }}>
+                <Text
+                  style={{
+                    fontFamily: "VisbyCF",
+                    color: "white",
+                    fontSize: 16,
+                    marginVertical: 23,
+                  }}
+                >
+                  Bench
+                </Text>
+              </View>
+              {benchSwappablePlayers.map((player: Player, index: number) => (
+                <Pressable style={[{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingHorizontal: 20,
+                }, index === 0 ? {} : { marginTop: 10 }]}
+                  onPress={() => {
+                    swapBenchStarter(player?.player);
+                    setIsSwapOpened(false);
+                  }}
+                  key={index}
+                >
+                  <View style={{ flexDirection: "row" }}>
+                    <View
+                      style={[
+                        {
+                          backgroundColor: colors.Bench,
+                          margin: 0
+                        },
+                        styles.positionBox,
+                      ]}
+                    >
+                      <Text style={{
+                        fontFamily: "The-Bold-Font",
+                        fontSize: 11,
+                        color: "white"
+                      }}>BN</Text>
+                    </View>
+                    <View style={{ marginHorizontal: 16 }}>
+                      <View style={styles.playerImageContainer}>
+                        <Image source={{ uri: `https:${player?.image_link}` }} style={styles.playerImage} />
+                      </View>
+                      <LogoSVGComponent uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
+                        style={{
+                          height: 20,
+                          width: 20,
+                          position: "absolute",
+                          bottom: 0,
+                          right: 0,
+                          transform: [
+                            { translateX: "25%" },
+                            { translateY: "25%" }
+                          ]
+                        }}
+                      />
+                    </View>
+                    <View style={{ justifyContent: "center" }}>
+                      <Text
+                        style={
+                          player?.player != "Empty"
+                            ? [styles.playerName]
+                            : styles.empty
+                        }
+                      >
+                        {player?.player}
+                      </Text>
+                      {player?.player != "Empty" ?
+                        (<View
+                          style={{
+                            flexDirection: "row",
+                            marginTop: -4,
+                          }}
+                        >
+                          <Text style={[styles.playerInfoText, { color: colors[player?.position as keyof typeof colors] }]}>
+                            {positionAbbriviations[player?.position as keyof typeof positionAbbriviations]?.toUpperCase()}{" "}
+                          </Text>
+                          <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
+                            •{" "}
+                            {
+                              player?.teamAbbr
+                            }
+                          </Text>
+                        </View>) : null
+                      }
+                    </View>
+                  </View>
+                  <Text
+                    style={
+                      player?.points != null
+                        ? [styles.playerName]
+                        : styles.empty
+                    }
+                  >
+                    {player?.points ?? "-"}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
           </SlideModal>
-          <LogoSVGComponent uri={`https://issac-eligulashvili.github.io/logo-images/All_Gamers.svg`} />
         </ScrollView>
       </View>
     </View>

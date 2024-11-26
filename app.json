@@ -3,7 +3,9 @@
     "name": "ReactApp",
     "slug": "ReactApp",
     "version": "1.0.0",
-    "assetBundlePatterns": ["./assets/fonts/*"],
+    "assetBundlePatterns": [
+      "./assets/fonts/*"
+    ],
     "newArchEnabled": true,
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,19 +17,26 @@
     },
     "ios": {
       "supportsTablet": true,
-      "userInterfaceStyle": "automatic"
+      "userInterfaceStyle": "automatic",
+      "bundleIdentifier": "com.ieligulashvili07.ReactApp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ieligulashvili07.ReactApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "e0ec8912-04bc-4173-87a2-b03b2f328a33"
+      }
+    }
   }
 }

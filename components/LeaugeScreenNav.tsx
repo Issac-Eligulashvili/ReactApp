@@ -63,7 +63,6 @@ export default function LeagueScreenNav() {
 
      useEffect(() => {
           setLoading(false);
-          console.log(userDataForCurrentLeague);
      }, [userDataForCurrentLeague]);
 
      return (
