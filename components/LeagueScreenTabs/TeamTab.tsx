@@ -103,7 +103,7 @@ export default function TeamTab() {
       return player.position === posToSwap && player != playerToSwap;
     })
     setBenchSwappablePlayers(benchPlayers)
-  }, [playerToSwap])
+  }, [playerToSwap, benchData])
 
   async function swapStarters(name: string) {
     const startersClone = [...starters];
@@ -115,7 +115,8 @@ export default function TeamTab() {
       const swappingIndex = startersClone.indexOf(swappingName);
       startersClone[indexToSwap] = swappingName;
       startersClone[swappingIndex] = toSwapName;
-      setStarters(startersClone)
+      setStarters(startersClone);
+      setBench(benchClone);
     } else {
       const toSwapName = playerToSwap?.player;
       const swappingName = name;
@@ -165,8 +166,8 @@ export default function TeamTab() {
 
     console.log(benchClone);
 
-    setBench(benchClone)
-    setStarters(startersClone)
+    setStarters(startersClone);
+    setBench(benchClone);
 
     userDataForCL.team.starters = startersClone;
 
@@ -190,9 +191,15 @@ export default function TeamTab() {
   }
 
   useEffect(() => {
+    console.log(benchComponent);
+    console.log(startersComponent);
+  }, [benchComponent, startersComponent])
+
+  useEffect(() => {
+    console.log(starterData);
     const remainingPlayers = [...starterData];
 
-    let startersComponent = startersOrder.map((position) => {
+    let renderComponent = startersOrder.map((position) => {
       const index = remainingPlayers.findIndex((player: any) => {
         return player.position == position;
       })
@@ -204,11 +211,11 @@ export default function TeamTab() {
         return { player: "Empty", position: position }
       }
     })
-    setStartersComponent(startersComponent);
+    setStartersComponent(renderComponent);
   }, [starterData]);
 
   useEffect(() => {
-    let benchComponent = benchOrder.map((i) => {
+    let renderComponent = benchOrder.map((i) => {
       if (benchData[i]) {
         const assignedPlayer = benchData[i];
         return assignedPlayer;
@@ -216,9 +223,7 @@ export default function TeamTab() {
         return { player: "Empty", position: null }
       }
     })
-
-    console.log(benchComponent);
-    setBenchComponent(benchComponent);
+    setBenchComponent(renderComponent);
   }, [benchData]);
 
   const record = `${userDataForCL.wins} - ${userDataForCL.losses}`;
@@ -367,6 +372,7 @@ export default function TeamTab() {
                     setPlayerToSwap(player);
                     setIsSwapOpened(true);
                     setIsBench(false);
+                    console.log('pressed starter');
                   }}
                 >
                   <Image
