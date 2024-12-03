@@ -26,12 +26,11 @@ import { database } from "@/js/supabaseClient";
 type Player = {
   position: string;
   player: string;
-  "image_link": string;
+  image_link: string;
   team: string;
   teamAbbr: string;
-  points?: number
-}
-
+  points?: number;
+};
 
 export default function TeamTab() {
   const userData = userDataState((state) => state.userData);
@@ -48,31 +47,45 @@ export default function TeamTab() {
   const isSwapOpened = useModalStore((state) => state.isSwapOpened);
   const [posToSwap, setPosToSwap] = useState("");
   const [playerToSwap, setPlayerToSwap] = useState<Player | null>(null);
-  const [starterSwappablePlayers, setStarterSwappablePlayers] = useState<any>([]);
+  const [starterSwappablePlayers, setStarterSwappablePlayers] = useState<any>(
+    []
+  );
   const [benchSwappablePlayers, setBenchSwappablePlayers] = useState<any>([]);
   const [isBench, setIsBench] = useState(false);
-  const currentLeagueData = useCurrentLeagueStore((state) => state.currentLeagueData);
-  const currentLeagueID = useCurrentLeagueStore((state) => state.currentLeagueID);
+  const currentLeagueData = useCurrentLeagueStore(
+    (state) => state.currentLeagueData
+  );
+  const currentLeagueID = useCurrentLeagueStore(
+    (state) => state.currentLeagueID
+  );
   const [benchComponent, setBenchComponent] = useState<any>([]);
 
-
-
-  const startersOrder = ["IGL", "Flex", "Flex", "Duelist", "Initiator", "Controller", "Sentinel"]
-  const benchOrder = [0, 1]
+  const startersOrder = [
+    "IGL",
+    "Flex",
+    "Flex",
+    "Duelist",
+    "Initiator",
+    "Controller",
+    "Sentinel",
+  ];
+  const benchOrder = [0, 1];
 
   useEffect(() => {
     setStarters(userDataForCL.team.starters);
     setBench(userDataForCL.team.bench);
-  }, [])
+  }, []);
 
   useEffect(() => {
     const getLiveTeamData = () => {
-      const filtered = livePlayerData.filter((playerRow: any) => {
-        return starters.includes(playerRow.player)
-      }).sort(
-        (a: any, b: any) =>
-          starters.indexOf(a.player) - starters.indexOf(b.player)
-      )
+      const filtered = livePlayerData
+        .filter((playerRow: any) => {
+          return starters.includes(playerRow.player);
+        })
+        .sort(
+          (a: any, b: any) =>
+            starters.indexOf(a.player) - starters.indexOf(b.player)
+        );
 
       setStarterData(filtered);
     };
@@ -81,12 +94,13 @@ export default function TeamTab() {
 
   useEffect(() => {
     const getLiveTeamData = () => {
-      const filtered = livePlayerData.filter((playerRow: any) => {
-        return bench.includes(playerRow.player)
-      }).sort(
-        (a: any, b: any) =>
-          bench.indexOf(a.player) - bench.indexOf(b.player)
-      )
+      const filtered = livePlayerData
+        .filter((playerRow: any) => {
+          return bench.includes(playerRow.player);
+        })
+        .sort(
+          (a: any, b: any) => bench.indexOf(a.player) - bench.indexOf(b.player)
+        );
 
       setBenchData(filtered);
     };
@@ -96,18 +110,18 @@ export default function TeamTab() {
   useEffect(() => {
     let players = starterData.filter((player: any) => {
       return player.position === posToSwap && player != playerToSwap;
-    })
+    });
     setStarterSwappablePlayers(players);
 
     let benchPlayers = benchData.filter((player: any) => {
       return player.position === posToSwap && player != playerToSwap;
-    })
-    setBenchSwappablePlayers(benchPlayers)
-  }, [playerToSwap, benchData])
+    });
+    setBenchSwappablePlayers(benchPlayers);
+  }, [playerToSwap, benchData]);
 
   async function swapStarters(name: string) {
     const startersClone = [...starters];
-    const benchClone = [...bench]
+    const benchClone = [...bench];
     if (!isBench) {
       const toSwapName = playerToSwap?.player;
       const swappingName = name;
@@ -133,16 +147,15 @@ export default function TeamTab() {
 
     const currentTeamsPlaying = currentLeagueData.teamsPlaying;
     const playerTeamIndex = currentTeamsPlaying.findIndex((player: any) => {
-      return player.playerID === userData.id
-    })
+      return player.playerID === userData.id;
+    });
     currentTeamsPlaying[playerTeamIndex].team.starters = startersClone;
     currentTeamsPlaying[playerTeamIndex].team.bench = benchClone;
-
 
     const response = await database
       .from("leagues")
       .update({ teamsPlaying: currentTeamsPlaying })
-      .eq("leagueID", currentLeagueID)
+      .eq("leagueID", currentLeagueID);
 
     if (response.error) {
       console.log("error");
@@ -173,8 +186,8 @@ export default function TeamTab() {
 
     const currentTeamsPlaying = currentLeagueData.teamsPlaying;
     const playerTeamIndex = currentTeamsPlaying.findIndex((player: any) => {
-      return player.playerID === userData.id
-    })
+      return player.playerID === userData.id;
+    });
     currentTeamsPlaying[playerTeamIndex].team.starters = startersClone;
     currentTeamsPlaying[playerTeamIndex].team.bench = benchClone;
 
@@ -183,34 +196,27 @@ export default function TeamTab() {
     const response = await database
       .from("leagues")
       .update({ teamsPlaying: currentTeamsPlaying })
-      .eq("leagueID", currentLeagueID)
+      .eq("leagueID", currentLeagueID);
 
     if (response.error) {
       console.log("error");
     }
   }
-
   useEffect(() => {
-    console.log(benchComponent);
-    console.log(startersComponent);
-  }, [benchComponent, startersComponent])
-
-  useEffect(() => {
-    console.log(starterData);
     const remainingPlayers = [...starterData];
 
     let renderComponent = startersOrder.map((position) => {
       const index = remainingPlayers.findIndex((player: any) => {
         return player.position == position;
-      })
+      });
 
       if (index != -1) {
         const [assignedPlayer] = remainingPlayers.splice(index, 1);
         return assignedPlayer;
       } else {
-        return { player: "Empty", position: position }
+        return { player: "Empty", position: position };
       }
-    })
+    });
     setStartersComponent(renderComponent);
   }, [starterData]);
 
@@ -220,9 +226,9 @@ export default function TeamTab() {
         const assignedPlayer = benchData[i];
         return assignedPlayer;
       } else {
-        return { player: "Empty", position: null }
+        return { player: "Empty", position: null };
       }
-    })
+    });
     setBenchComponent(renderComponent);
   }, [benchData]);
 
@@ -352,18 +358,22 @@ export default function TeamTab() {
           {startersComponent.map((player: any, index: number) => {
             return (
               <View
-                style={[{
-                  height: 32,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  width: "100%",
-                }, index === 0 ? {} : { marginTop: 15 }]}
+                style={[
+                  {
+                    height: 32,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    width: "100%",
+                  },
+                  index === 0 ? {} : { marginTop: 15 },
+                ]}
                 key={index}
               >
                 <Pressable
                   style={[
                     {
-                      backgroundColor: colors[player?.position as keyof typeof colors],
+                      backgroundColor:
+                        colors[player?.position as keyof typeof colors],
                     },
                     styles.positionBox,
                   ]}
@@ -372,11 +382,15 @@ export default function TeamTab() {
                     setPlayerToSwap(player);
                     setIsSwapOpened(true);
                     setIsBench(false);
-                    console.log('pressed starter');
+                    console.log("pressed starter");
                   }}
                 >
                   <Image
-                    source={positionIcons[player?.position as keyof typeof positionIcons]}
+                    source={
+                      positionIcons[
+                        player?.position as keyof typeof positionIcons
+                      ]
+                    }
                     style={styles.positionImage}
                   />
                 </Pressable>
@@ -397,37 +411,44 @@ export default function TeamTab() {
                     >
                       {player.player}
                     </Text>
-                    {player.player != "Empty" ?
-                      (<View
+                    {player.player != "Empty" ? (
+                      <View
                         style={{
                           flexDirection: "row",
                           marginTop: -4,
                         }}
                       >
-                        <Text style={[styles.playerInfoText, { color: colors[player?.position as keyof typeof colors] }]}>
-                          {positionAbbriviations[player?.position as keyof typeof positionAbbriviations].toUpperCase()}{" "}
+                        <Text
+                          style={[
+                            styles.playerInfoText,
+                            {
+                              color:
+                                colors[player?.position as keyof typeof colors],
+                            },
+                          ]}
+                        >
+                          {positionAbbriviations[
+                            player?.position as keyof typeof positionAbbriviations
+                          ].toUpperCase()}{" "}
                         </Text>
-                        <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
-                          •{" "}
-                          {
-                            player?.teamAbbr
-                          }
+                        <Text
+                          style={[styles.playerInfoText, { color: "#ABABAB" }]}
+                        >
+                          • {player?.teamAbbr}
                         </Text>
-                      </View>) : null
-                    }
+                      </View>
+                    ) : null}
                   </View>
                   <Text
                     style={
-                      player.points != null
-                        ? [styles.playerName]
-                        : styles.empty
+                      player.points != null ? [styles.playerName] : styles.empty
                     }
                   >
                     {player?.points ?? "-"}
                   </Text>
                 </View>
               </View>
-            )
+            );
           })}
 
           <Text
@@ -443,12 +464,15 @@ export default function TeamTab() {
           {benchComponent.map((player: any, index: number) => {
             return (
               <View
-                style={[{
-                  height: 32,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  width: "100%",
-                }, index === 0 ? {} : { marginTop: 15 }]}
+                style={[
+                  {
+                    height: 32,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    width: "100%",
+                  },
+                  index === 0 ? {} : { marginTop: 15 },
+                ]}
                 key={index}
               >
                 <Pressable
@@ -465,11 +489,15 @@ export default function TeamTab() {
                     setIsBench(true);
                   }}
                 >
-                  <Text style={{
-                    fontFamily: "The-Bold-Font",
-                    fontSize: 11,
-                    color: "white"
-                  }}>BN</Text>
+                  <Text
+                    style={{
+                      fontFamily: "The-Bold-Font",
+                      fontSize: 11,
+                      color: "white",
+                    }}
+                  >
+                    BN
+                  </Text>
                 </Pressable>
                 <View
                   style={{
@@ -488,110 +516,163 @@ export default function TeamTab() {
                     >
                       {player.player}
                     </Text>
-                    {player.player != "Empty" ?
-                      (<View
+                    {player.player != "Empty" ? (
+                      <View
                         style={{
                           flexDirection: "row",
                           marginTop: -4,
                         }}
                       >
-                        <Text style={[styles.playerInfoText, { color: colors[player?.position as keyof typeof colors] }]}>
-                          {positionAbbriviations[player?.position as keyof typeof positionAbbriviations].toUpperCase()}{" "}
+                        <Text
+                          style={[
+                            styles.playerInfoText,
+                            {
+                              color:
+                                colors[player?.position as keyof typeof colors],
+                            },
+                          ]}
+                        >
+                          {positionAbbriviations[
+                            player?.position as keyof typeof positionAbbriviations
+                          ].toUpperCase()}{" "}
                         </Text>
-                        <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
-                          •{" "}
-                          {
-                            player?.teamAbbr
-                          }
+                        <Text
+                          style={[styles.playerInfoText, { color: "#ABABAB" }]}
+                        >
+                          • {player?.teamAbbr}
                         </Text>
-                      </View>) : null
-                    }
+                      </View>
+                    ) : null}
                   </View>
                   <Text
                     style={
-                      player.points != null
-                        ? [styles.playerName]
-                        : styles.empty
+                      player.points != null ? [styles.playerName] : styles.empty
                     }
                   >
                     {player?.points ?? "-"}
                   </Text>
                 </View>
               </View>
-            )
+            );
           })}
           <SlideModal isOpen={isSwapOpened}>
-            <View style={{
-              backgroundColor: "rgb(46, 26, 71)",
-              borderTopRightRadius: 10,
-              borderTopLeftRadius: 10,
-              width: "100%",
-              paddingBottom: 10
-            }}>
-              <View style={{
-                justifyContent: "space-between", flexDirection: "row", alignItems: "center", paddingHorizontal: 20,
-                paddingTop: 10,
-              }}>
+            <View
+              style={{
+                backgroundColor: "rgb(46, 26, 71)",
+                borderTopRightRadius: 10,
+                borderTopLeftRadius: 10,
+                width: "100%",
+                paddingBottom: 10,
+              }}
+            >
+              <View
+                style={{
+                  justifyContent: "space-between",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: 20,
+                  paddingTop: 10,
+                }}
+              >
                 <View style={{ height: 24, width: 24 }} />
-                <Text style={{
-                  color: "white",
-                  fontFamily: "tex",
-                  fontSize: 20,
-                  textAlign: "center"
-                }}>
+                <Text
+                  style={{
+                    color: "white",
+                    fontFamily: "tex",
+                    fontSize: 20,
+                    textAlign: "center",
+                  }}
+                >
                   Swap Players
                 </Text>
-                <Pressable onPress={() => { setIsSwapOpened(false); setPlayerToSwap(null) }}>
+                <Pressable
+                  onPress={() => {
+                    setIsSwapOpened(false);
+                    setPlayerToSwap(null);
+                  }}
+                >
                   <MaterialIcons name="close" size={24} color="white" />
                 </Pressable>
               </View>
-              <View style={{
-                flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 10, paddingHorizontal: 20,
-              }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: 10,
+                  paddingHorizontal: 20,
+                }}
+              >
                 <View style={{ flexDirection: "row" }}>
-                  {!isBench ?
+                  {!isBench ? (
                     <View
                       style={[
                         styles.positionBox,
                         {
-                          backgroundColor: colors[playerToSwap?.position as keyof typeof colors],
-                          margin: 0
+                          backgroundColor:
+                            colors[
+                              playerToSwap?.position as keyof typeof colors
+                            ],
+                          margin: 0,
                         },
                       ]}
                     >
                       <Image
-                        source={positionIcons[playerToSwap?.position as keyof typeof positionIcons]}
+                        source={
+                          positionIcons[
+                            playerToSwap?.position as keyof typeof positionIcons
+                          ]
+                        }
                         style={styles.positionImage}
                       />
-                    </View> :
+                    </View>
+                  ) : (
                     <View
                       style={[
                         {
                           backgroundColor: colors.Bench,
-                          margin: 0
+                          margin: 0,
                         },
                         styles.positionBox,
                       ]}
                     >
-                      <Text style={{
-                        fontFamily: "The-Bold-Font",
-                        fontSize: 11,
-                        color: "white"
-                      }}>BN</Text>
+                      <Text
+                        style={{
+                          fontFamily: "The-Bold-Font",
+                          fontSize: 11,
+                          color: "white",
+                        }}
+                      >
+                        BN
+                      </Text>
                     </View>
-                  }
-                  <View style={playerToSwap?.player === 'Empty' ?
-                    { width: 16 } :
-                    { marginHorizontal: 16 }
-                  }  >
-                    {playerToSwap?.player === "Empty" ? null :
+                  )}
+                  <View
+                    style={
+                      playerToSwap?.player === "Empty"
+                        ? { width: 16 }
+                        : { marginHorizontal: 16 }
+                    }
+                  >
+                    {playerToSwap?.player === "Empty" ? null : (
                       <View style={styles.playerImageContainer}>
-                        {playerToSwap?.image_link.substring(0, 2) === '//' ?
-                          <Image source={{ uri: `https:${playerToSwap?.image_link}` }} style={styles.playerImage} /> :
-                          <Image source={require("@/assets/img/base/ph/sil.png")} style={styles.playerImage} />
-                        }
-                      </View>}
-                    <LogoSVGComponent uri={`https://issac-eligulashvili.github.io/logo-images/${playerToSwap?.team}.svg`}
+                        {playerToSwap?.image_link.substring(0, 2) === "//" ? (
+                          <Image
+                            source={{
+                              uri: `https:${playerToSwap?.image_link}`,
+                            }}
+                            style={styles.playerImage}
+                          />
+                        ) : (
+                          <Image
+                            source={require("@/assets/img/base/ph/sil.png")}
+                            style={styles.playerImage}
+                          />
+                        )}
+                      </View>
+                    )}
+                    <LogoSVGComponent
+                      uri={`https://issac-eligulashvili.github.io/logo-images/${playerToSwap?.team}.svg`}
                       style={{
                         height: 20,
                         width: 20,
@@ -600,8 +681,8 @@ export default function TeamTab() {
                         right: 0,
                         transform: [
                           { translateX: "25%" },
-                          { translateY: "25%" }
-                        ]
+                          { translateY: "25%" },
+                        ],
                       }}
                     />
                   </View>
@@ -615,24 +696,35 @@ export default function TeamTab() {
                     >
                       {playerToSwap?.player}
                     </Text>
-                    {playerToSwap?.player != "Empty" ?
-                      (<View
+                    {playerToSwap?.player != "Empty" ? (
+                      <View
                         style={{
                           flexDirection: "row",
                           marginTop: -4,
                         }}
                       >
-                        <Text style={[styles.playerInfoText, { color: colors[playerToSwap?.position as keyof typeof colors] }]}>
-                          {positionAbbriviations[playerToSwap?.position as keyof typeof positionAbbriviations]?.toUpperCase()}{" "}
+                        <Text
+                          style={[
+                            styles.playerInfoText,
+                            {
+                              color:
+                                colors[
+                                  playerToSwap?.position as keyof typeof colors
+                                ],
+                            },
+                          ]}
+                        >
+                          {positionAbbriviations[
+                            playerToSwap?.position as keyof typeof positionAbbriviations
+                          ]?.toUpperCase()}{" "}
                         </Text>
-                        <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
-                          •{" "}
-                          {
-                            playerToSwap?.teamAbbr
-                          }
+                        <Text
+                          style={[styles.playerInfoText, { color: "#ABABAB" }]}
+                        >
+                          • {playerToSwap?.teamAbbr}
                         </Text>
-                      </View>) : null
-                    }
+                      </View>
+                    ) : null}
                   </View>
                 </View>
                 <Text
@@ -650,16 +742,20 @@ export default function TeamTab() {
                   borderBottomColor: colors.subtext,
                   borderBottomWidth: StyleSheet.hairlineWidth,
                   width: "100%",
-                  marginVertical: 15
+                  marginVertical: 15,
                 }}
               />
               {starterSwappablePlayers.map((player: Player, index: number) => (
-                <Pressable style={[{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingHorizontal: 20,
-                }, index === 0 ? {} : { marginTop: 10 }]}
+                <Pressable
+                  style={[
+                    {
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      paddingHorizontal: 20,
+                    },
+                    index === 0 ? {} : { marginTop: 10 },
+                  ]}
                   onPress={() => {
                     swapStarters(player?.player);
                     setIsSwapOpened(false);
@@ -671,21 +767,30 @@ export default function TeamTab() {
                       style={[
                         styles.positionBox,
                         {
-                          backgroundColor: colors[player?.position as keyof typeof colors],
-                          margin: 0
+                          backgroundColor:
+                            colors[player?.position as keyof typeof colors],
+                          margin: 0,
                         },
                       ]}
                     >
                       <Image
-                        source={positionIcons[player?.position as keyof typeof positionIcons]}
+                        source={
+                          positionIcons[
+                            player?.position as keyof typeof positionIcons
+                          ]
+                        }
                         style={styles.positionImage}
                       />
                     </View>
                     <View style={{ marginHorizontal: 16 }}>
                       <View style={styles.playerImageContainer}>
-                        <Image source={{ uri: `https:${player?.image_link}` }} style={styles.playerImage} />
+                        <Image
+                          source={{ uri: `https:${player?.image_link}` }}
+                          style={styles.playerImage}
+                        />
                       </View>
-                      <LogoSVGComponent uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
+                      <LogoSVGComponent
+                        uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
                         style={{
                           height: 20,
                           width: 20,
@@ -694,8 +799,8 @@ export default function TeamTab() {
                           right: 0,
                           transform: [
                             { translateX: "25%" },
-                            { translateY: "25%" }
-                          ]
+                            { translateY: "25%" },
+                          ],
                         }}
                       />
                     </View>
@@ -709,24 +814,38 @@ export default function TeamTab() {
                       >
                         {player?.player}
                       </Text>
-                      {player?.player != "Empty" ?
-                        (<View
+                      {player?.player != "Empty" ? (
+                        <View
                           style={{
                             flexDirection: "row",
                             marginTop: -4,
                           }}
                         >
-                          <Text style={[styles.playerInfoText, { color: colors[player?.position as keyof typeof colors] }]}>
-                            {positionAbbriviations[player?.position as keyof typeof positionAbbriviations]?.toUpperCase()}{" "}
+                          <Text
+                            style={[
+                              styles.playerInfoText,
+                              {
+                                color:
+                                  colors[
+                                    player?.position as keyof typeof colors
+                                  ],
+                              },
+                            ]}
+                          >
+                            {positionAbbriviations[
+                              player?.position as keyof typeof positionAbbriviations
+                            ]?.toUpperCase()}{" "}
                           </Text>
-                          <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
-                            •{" "}
-                            {
-                              player?.teamAbbr
-                            }
+                          <Text
+                            style={[
+                              styles.playerInfoText,
+                              { color: "#ABABAB" },
+                            ]}
+                          >
+                            • {player?.teamAbbr}
                           </Text>
-                        </View>) : null
-                      }
+                        </View>
+                      ) : null}
                     </View>
                   </View>
                   <Text
@@ -753,12 +872,16 @@ export default function TeamTab() {
                 </Text>
               </View>
               {benchSwappablePlayers.map((player: Player, index: number) => (
-                <Pressable style={[{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingHorizontal: 20,
-                }, index === 0 ? {} : { marginTop: 10 }]}
+                <Pressable
+                  style={[
+                    {
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      paddingHorizontal: 20,
+                    },
+                    index === 0 ? {} : { marginTop: 10 },
+                  ]}
                   onPress={() => {
                     swapBenchStarter(player?.player);
                     setIsSwapOpened(false);
@@ -770,22 +893,30 @@ export default function TeamTab() {
                       style={[
                         {
                           backgroundColor: colors.Bench,
-                          margin: 0
+                          margin: 0,
                         },
                         styles.positionBox,
                       ]}
                     >
-                      <Text style={{
-                        fontFamily: "The-Bold-Font",
-                        fontSize: 11,
-                        color: "white"
-                      }}>BN</Text>
+                      <Text
+                        style={{
+                          fontFamily: "The-Bold-Font",
+                          fontSize: 11,
+                          color: "white",
+                        }}
+                      >
+                        BN
+                      </Text>
                     </View>
                     <View style={{ marginHorizontal: 16 }}>
                       <View style={styles.playerImageContainer}>
-                        <Image source={{ uri: `https:${player?.image_link}` }} style={styles.playerImage} />
+                        <Image
+                          source={{ uri: `https:${player?.image_link}` }}
+                          style={styles.playerImage}
+                        />
                       </View>
-                      <LogoSVGComponent uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
+                      <LogoSVGComponent
+                        uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
                         style={{
                           height: 20,
                           width: 20,
@@ -794,8 +925,8 @@ export default function TeamTab() {
                           right: 0,
                           transform: [
                             { translateX: "25%" },
-                            { translateY: "25%" }
-                          ]
+                            { translateY: "25%" },
+                          ],
                         }}
                       />
                     </View>
@@ -809,24 +940,38 @@ export default function TeamTab() {
                       >
                         {player?.player}
                       </Text>
-                      {player?.player != "Empty" ?
-                        (<View
+                      {player?.player != "Empty" ? (
+                        <View
                           style={{
                             flexDirection: "row",
                             marginTop: -4,
                           }}
                         >
-                          <Text style={[styles.playerInfoText, { color: colors[player?.position as keyof typeof colors] }]}>
-                            {positionAbbriviations[player?.position as keyof typeof positionAbbriviations]?.toUpperCase()}{" "}
+                          <Text
+                            style={[
+                              styles.playerInfoText,
+                              {
+                                color:
+                                  colors[
+                                    player?.position as keyof typeof colors
+                                  ],
+                              },
+                            ]}
+                          >
+                            {positionAbbriviations[
+                              player?.position as keyof typeof positionAbbriviations
+                            ]?.toUpperCase()}{" "}
                           </Text>
-                          <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
-                            •{" "}
-                            {
-                              player?.teamAbbr
-                            }
+                          <Text
+                            style={[
+                              styles.playerInfoText,
+                              { color: "#ABABAB" },
+                            ]}
+                          >
+                            • {player?.teamAbbr}
                           </Text>
-                        </View>) : null
-                      }
+                        </View>
+                      ) : null}
                     </View>
                   </View>
                   <Text
@@ -885,6 +1030,6 @@ const styles = StyleSheet.create({
     borderRadius: "50%",
     overflow: "hidden",
     backgroundColor: "white",
-    position: "relative"
-  }
+    position: "relative",
+  },
 });

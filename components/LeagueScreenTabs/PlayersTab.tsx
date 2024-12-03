@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Pressable,
   Image,
+  TextInput,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { LogoSVGComponent } from "../FetchLeagueSVG";
@@ -39,41 +40,60 @@ export default function PlayersTab() {
   const currentLeagueID = useCurrentLeagueStore(
     (state) => state.currentLeagueID
   );
+  const setCurrentLeagueData = useCurrentLeagueStore(
+    (state) => state.setCurrentLeagueData
+  );
   const [currentFilter, setCurrentFilter] = useState("All");
   const [filteredArray, setFilteredArray] = useState<any>(
     currentLeagueData["available_players"]
   );
+  const [search, setSearch] = useState("");
+
+  async function setCurrentPlayers() {
+    if (currentFilter === "All") {
+      const playerData = await database
+        .from("players")
+        .select("*")
+        .in("player", currentLeagueData["available_players"]);
+      if (playerData.data) {
+        setFilteredArray(playerData.data);
+      }
+    } else {
+      const playerPositionData = await database
+        .from("players")
+        .select("*")
+        .in("position", [currentFilter]);
+      const playerData = playerPositionData?.data?.filter((p: any) =>
+        currentLeagueData["available_players"].includes(p.player)
+      );
+      setFilteredArray(playerData);
+    }
+  }
 
   useEffect(() => {
-    async function setCurrentPlayers() {
-      if (currentFilter === "All") {
-        const playerData = await database
-          .from("players")
-          .select("*")
-          .in("player", currentLeagueData["available_players"]);
-        if (playerData.data) {
-          setFilteredArray(playerData.data);
-        }
-      } else {
-        const playerData = await database
-          .from("players")
-          .select("*")
-          .in("position", [currentFilter]);
-        if (playerData.data) {
-          setFilteredArray(playerData.data);
-        }
+    setCurrentPlayers();
+  }, [currentFilter, currentLeagueData]);
+
+  useEffect(() => {
+    async function doSearch() {
+      const playerData = await database
+        .from("players")
+        .select("*")
+        .ilike("player", `%${search}%`);
+      if (playerData.data) {
+        setFilteredArray(playerData.data);
       }
     }
-    setCurrentPlayers();
-  }, [currentFilter]);
+
+    doSearch();
+  }, [search]);
 
   async function addPlayer(player: any) {
     const playerData = await database.from("players").select();
     let currentAvailPlayers = currentLeagueData["available_players"];
-
+    let clDataClone = { ...currentLeagueData };
     let starters = userDataForCL.team.starters;
     let bench = userDataForCL.team.bench;
-
     let maxPlayers = 1;
 
     if (player.position === "Flex") {
@@ -103,14 +123,20 @@ export default function PlayersTab() {
     currentTeamsPlaying[playerTeamIndex].team.starters = starters;
     currentTeamsPlaying[playerTeamIndex].team.bench = bench;
 
+    const playerIndex = currentAvailPlayers.findIndex(
+      (p: any) => p === player.player
+    );
+    currentAvailPlayers.splice(playerIndex, 1);
+
     const response = await database
       .from("leagues")
-      .update({ teamsPlaying: currentTeamsPlaying })
+      .update({
+        teamsPlaying: currentTeamsPlaying,
+        available_players: currentAvailPlayers,
+      })
       .eq("leagueID", currentLeagueID);
-
-    const playerIndex = currentAvailPlayers.findIndex((p: any) => {
-      p === player;
-    });
+    clDataClone["available_players"] = currentAvailPlayers;
+    setCurrentLeagueData(clDataClone);
   }
 
   return (
@@ -120,7 +146,8 @@ export default function PlayersTab() {
           flexDirection: "row",
           width: "100%",
           justifyContent: "space-between",
-          marginVertical: 20,
+          marginTop: 20,
+          marginBottom: 5,
         }}
       >
         {navOrder.map((nav, index) => (
@@ -157,6 +184,34 @@ export default function PlayersTab() {
           </Pressable>
         ))}
       </View>
+      <View style={{ paddingHorizontal: 10, width: "100%", marginBottom: 15 }}>
+        <View
+          style={{
+            height: 32,
+            width: "100%",
+            backgroundColor: "rgb(87, 72, 105)",
+            borderRadius: 20,
+            paddingHorizontal: 10,
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "row",
+          }}
+        >
+          <MaterialIcons
+            name="person-search"
+            size={24}
+            color="white"
+            style={{ width: 24 }}
+          />
+          <TextInput
+            style={[{ flexGrow: 1, marginLeft: 5 }, styles.text]}
+            placeholder={"Search..."}
+            placeholderTextColor={colors.subtext}
+            onChangeText={(newText) => setSearch(newText)}
+            value={search}
+          ></TextInput>
+        </View>
+      </View>
       <FlatList
         data={filteredArray}
         keyExtractor={(player) => player.player}
@@ -174,18 +229,20 @@ export default function PlayersTab() {
             ]}
             key={index}
           >
-            <Pressable
-              style={{ marginRight: 10 }}
-              onPress={() => {
-                addPlayer(item);
-              }}
-            >
-              <MaterialIcons
-                name="add-circle-outline"
-                size={24}
-                color="white"
-              />
-            </Pressable>
+            {currentLeagueData.isDrafted ? (
+              <Pressable
+                style={{ marginRight: 10 }}
+                onPress={() => {
+                  addPlayer(item);
+                }}
+              >
+                <MaterialIcons
+                  name="add-circle-outline"
+                  size={24}
+                  color="white"
+                />
+              </Pressable>
+            ) : null}
             <Text style={styles.text}>{index + 1}</Text>
             <View style={{ marginHorizontal: 16 }}>
               <View style={styles.playerImageContainer}>
