@@ -12,53 +12,55 @@ import TeamTab from "@/components/LeagueScreenTabs/TeamTab";
 import PlayersTab from "@/components/LeagueScreenTabs/PlayersTab";
 
 export default function CurrentLeagueScreen() {
-     const currentTab = currentLeagueNav((state) => state.currentTab);
+  const currentTab = currentLeagueNav((state) => state.currentTab);
 
-     const renderTabComponent = () => {
-          switch (currentTab) {
-               case "Draft":
-                    return <DraftTab />
-               case "Matchup":
-                    return <MatchupTab />
-               case "Team":
-                    return <TeamTab />
-               case "Players":
-                    return <PlayersTab />
-               case "League":
-                    return <LeaguesTab />
-          }
-     }
+  const renderTabComponent = () => {
+    switch (currentTab) {
+      case "Draft":
+        return <DraftTab />;
+      case "Matchup":
+        return <MatchupTab />;
+      case "Team":
+        return <TeamTab />;
+      case "Players":
+        return <PlayersTab />;
+      case "League":
+        return <LeaguesTab />;
+    }
+  };
 
-     return (
-          <LinearGradient
-               colors={["#2E1A47", "#0B1124"]}
-               start={{ x: 0, y: 0 }}
-               end={{ x: 1, y: 1 }}
-               style={styles.gradient}
-          >
-               <SafeAreaView style={styles.container}>
-                    <LeagueScreenNav />
-                    {renderTabComponent()}
-                    <StatusBar style="auto" />
-                    <Footer></Footer>
-               </SafeAreaView >
-          </LinearGradient>
-     )
+  return (
+    <LinearGradient
+      colors={["#2E1A47", "#0B1124"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradient}
+    >
+      <SafeAreaView style={styles.container}>
+        <LeagueScreenNav />
+        {renderTabComponent()}
+        <StatusBar style="auto" />
+        <Footer></Footer>
+      </SafeAreaView>
+    </LinearGradient>
+  );
 }
 
 const styles = StyleSheet.create({
-     gradient: {
-          flex: 1, // This makes the gradient cover the full area
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%", // Full width to match the parent container
-     },
-     container: {
-          flex: 1,
-          backgroundColor: "transparent",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          width: "100%",
-          position: "relative",
-     },
-})
+  gradient: {
+    flex: 1, // This makes the gradient cover the full area
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%", // Full width to match the parent container
+    overflow: "hidden",
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+    position: "relative",
+    overflow: "hidden",
+  },
+});

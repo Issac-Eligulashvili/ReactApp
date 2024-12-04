@@ -140,7 +140,7 @@ export default function PlayersTab() {
   }
 
   return (
-    <>
+    <View style={{ flex: 1, height: "100%", width: "100%" }}>
       <View
         style={{
           flexDirection: "row",
@@ -212,115 +212,125 @@ export default function PlayersTab() {
           ></TextInput>
         </View>
       </View>
-      <FlatList
-        data={filteredArray}
-        keyExtractor={(player) => player.player}
-        renderItem={({ item, index }) => (
-          <View
-            style={[
-              {
-                height: 32,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-              },
-              index === 0 ? {} : { marginTop: 15 },
-            ]}
-            key={index}
-          >
-            {currentLeagueData.isDrafted ? (
-              <Pressable
-                style={{ marginRight: 10 }}
-                onPress={() => {
-                  addPlayer(item);
+      <View style={{ flex: 1, height: "100%" }}>
+        <FlatList
+          data={filteredArray}
+          keyExtractor={(player) => player.player}
+          renderItem={({ item, index }) => (
+            <View
+              style={[
+                {
+                  height: 32,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "100%",
+                },
+                index === 0 ? {} : { marginTop: 15 },
+              ]}
+              key={index}
+            >
+              {currentLeagueData.isDrafted ? (
+                <Pressable
+                  style={{ marginRight: 10 }}
+                  onPress={() => {
+                    addPlayer(item);
+                  }}
+                >
+                  <MaterialIcons
+                    name="add-circle-outline"
+                    size={24}
+                    color="white"
+                  />
+                </Pressable>
+              ) : null}
+              <Text style={styles.text}>{index + 1}</Text>
+              <View style={{ marginHorizontal: 16 }}>
+                <View style={styles.playerImageContainer}>
+                  {item?.image_link?.substring(0, 2) === "//" ? (
+                    <Image
+                      source={{ uri: `https:${item?.image_link}` }}
+                      style={styles.playerImage}
+                    />
+                  ) : (
+                    <Image
+                      source={require("@/assets/img/base/ph/sil.png")}
+                      style={styles.playerImage}
+                    />
+                  )}
+                </View>
+                <LogoSVGComponent
+                  uri={`https://issac-eligulashvili.github.io/logo-images/${item?.team}.svg`}
+                  style={{
+                    height: 20,
+                    width: 20,
+                    position: "absolute",
+                    bottom: 0,
+                    right: 0,
+                    transform: [{ translateX: "25%" }, { translateY: "25%" }],
+                  }}
+                />
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  flexGrow: 1,
                 }}
               >
-                <MaterialIcons
-                  name="add-circle-outline"
-                  size={24}
-                  color="white"
-                />
-              </Pressable>
-            ) : null}
-            <Text style={styles.text}>{index + 1}</Text>
-            <View style={{ marginHorizontal: 16 }}>
-              <View style={styles.playerImageContainer}>
-                {item?.image_link?.substring(0, 2) === "//" ? (
-                  <Image
-                    source={{ uri: `https:${item?.image_link}` }}
-                    style={styles.playerImage}
-                  />
-                ) : (
-                  <Image
-                    source={require("@/assets/img/base/ph/sil.png")}
-                    style={styles.playerImage}
-                  />
-                )}
-              </View>
-              <LogoSVGComponent
-                uri={`https://issac-eligulashvili.github.io/logo-images/${item?.team}.svg`}
-                style={{
-                  height: 20,
-                  width: 20,
-                  position: "absolute",
-                  bottom: 0,
-                  right: 0,
-                  transform: [{ translateX: "25%" }, { translateY: "25%" }],
-                }}
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                flexGrow: 1,
-              }}
-            >
-              <View>
+                <View>
+                  <Text
+                    style={
+                      item.player != "Empty"
+                        ? [styles.playerName]
+                        : styles.empty
+                    }
+                  >
+                    {item.player}
+                  </Text>
+                  {item.player != "Empty" ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        marginTop: -4,
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.playerInfoText,
+                          {
+                            color:
+                              colors[item?.position as keyof typeof colors],
+                          },
+                        ]}
+                      >
+                        {positionAbbriviations[
+                          item?.position as keyof typeof positionAbbriviations
+                        ]?.toUpperCase()}{" "}
+                      </Text>
+                      <Text
+                        style={[styles.playerInfoText, { color: "#ABABAB" }]}
+                      >
+                        • {item?.teamAbbr}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
                 <Text
                   style={
-                    item.player != "Empty" ? [styles.playerName] : styles.empty
+                    item.points != null ? [styles.playerName] : styles.empty
                   }
                 >
-                  {item.player}
+                  {item?.points ?? "-"}
                 </Text>
-                {item.player != "Empty" ? (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      marginTop: -4,
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.playerInfoText,
-                        {
-                          color: colors[item?.position as keyof typeof colors],
-                        },
-                      ]}
-                    >
-                      {positionAbbriviations[
-                        item?.position as keyof typeof positionAbbriviations
-                      ]?.toUpperCase()}{" "}
-                    </Text>
-                    <Text style={[styles.playerInfoText, { color: "#ABABAB" }]}>
-                      • {item?.teamAbbr}
-                    </Text>
-                  </View>
-                ) : null}
               </View>
-              <Text
-                style={item.points != null ? [styles.playerName] : styles.empty}
-              >
-                {item?.points ?? "-"}
-              </Text>
             </View>
-          </View>
-        )}
-        style={{ flexGrow: 1, width: "100%", padding: 10 }}
-      />
-    </>
+          )}
+          contentContainerStyle={{ padding: 10 }}
+          style={{ height: "100%" }}
+        />
+      </View>
+    </View>
   );
 }
 
