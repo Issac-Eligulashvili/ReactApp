@@ -58,30 +58,32 @@ export default function SignupScreen() {
               secureTextEntry={true}
             ></CustomTextInput>
           </View>
-          <Pressable style={styles.button} onPress={async () => {
-            let response = await database
-              .auth.signUp({
+          <Pressable
+            style={styles.button}
+            onPress={async () => {
+              let response = await database.auth.signUp({
                 email: text2,
                 password: text3,
-              })
-            if (response.error) {
-              alert('There was an error signing up');
-            }
+              });
+              if (response.error) {
+                console.log(response.error);
+              }
 
-            const userID = response?.data?.user?.id
+              const userID = response?.data?.user?.id;
 
-            let response2 = await database.from("users").insert({
-              username: text,
-              email: text2,
-              id: userID,
-            })
+              let response2 = await database.from("users").insert({
+                username: text,
+                email: text2,
+                id: userID,
+              });
 
-            if (response2.error) {
-              alert('There was an error signing up');
-            } else {
-              navigation.navigate("Login");
-            }
-          }}>
+              if (response2.error) {
+                alert("There was an error signing up");
+              } else {
+                navigation.navigate("Login");
+              }
+            }}
+          >
             <Text style={[styles.bold, styles.btnText]}>Sign Up</Text>
           </Pressable>
           <View
