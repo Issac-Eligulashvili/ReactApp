@@ -6,6 +6,7 @@ import {
   Pressable,
   Image,
   TextInput,
+  useWindowDimensions,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { LogoSVGComponent } from "../FetchLeagueSVG";
@@ -48,7 +49,9 @@ export default function PlayersTab() {
     currentLeagueData["available_players"]
   );
   const [search, setSearch] = useState("");
+  const { height, width } = useWindowDimensions();
 
+  const listHeight = height - 348;
   async function setCurrentPlayers() {
     if (currentFilter === "All") {
       const playerData = await database
@@ -327,7 +330,7 @@ export default function PlayersTab() {
             </View>
           )}
           contentContainerStyle={{ padding: 10 }}
-          style={{ height: "100%" }}
+          style={{ height: listHeight }}
         />
       </View>
     </View>

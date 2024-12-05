@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
-  SafeAreaView
+  SafeAreaView,
 } from "react-native";
 import { database } from "../js/supabaseClient";
 import { useEffect } from "react";
@@ -14,7 +14,12 @@ import { useData } from "../components/UserDataProvider";
 import React from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import { CustomModal } from "../components/ModalComponent";
-import { useModalStore, useCurrentLeagueStore, allLeaguesData, liveData } from "@/states/StoreStates";
+import {
+  useModalStore,
+  useCurrentLeagueStore,
+  allLeaguesData,
+  liveData,
+} from "@/states/StoreStates";
 import CreateLeaugeModalContent from "@/components/CreateLeagueModalContent";
 import Footer from "@/components/Footer";
 import { useNavigation } from "@react-navigation/native";
@@ -22,10 +27,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@/components/type";
 import JoinLeagueModalContent from "@/components/JoinLeagueModalContent";
 
-type AuthScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "Home"
->;
+type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
 type LeagueCardProps = {
   leagueName: string;
@@ -68,16 +70,18 @@ function HomeScreen() {
   const setIsOpened = useModalStore((state) => state.setIsOpened);
   const isOpened = useModalStore((state) => state.isOpened);
   const navigation = useNavigation<AuthScreenNavigationProp>();
-  const leaguesData = allLeaguesData((state) => state.fetchedLeagues)
+  const leaguesData = allLeaguesData((state) => state.fetchedLeagues);
   const setLeaguesData = allLeaguesData((state) => state.setLeaguesData);
-  const setCurrentLeagueID = useCurrentLeagueStore((state) => state.setCurrentLeagueID);
+  const setCurrentLeagueID = useCurrentLeagueStore(
+    (state) => state.setCurrentLeagueID
+  );
   const isLoading = allLeaguesData((state) => state.loading);
   const setLoading = allLeaguesData((state) => state.setLoading);
-  const setCurrentLeagueData = useCurrentLeagueStore((state) => state.setCurrentLeagueData);
+  const setCurrentLeagueData = useCurrentLeagueStore(
+    (state) => state.setCurrentLeagueData
+  );
   const isPicked = useModalStore((state) => state.isPicked);
   const setIsPicked = useModalStore((state) => state.setIsPicked);
-  const livePlayerData = liveData((state) => state.livePlayerData);
-
 
   useEffect(() => {
     if (loading || !userData) return;
@@ -99,7 +103,7 @@ function HomeScreen() {
               leagueID: league.leagueID,
               numPlayers: league.numPlayers,
               isDrafted: league.isDrafted,
-              availablePlayers: league['available_players'],
+              availablePlayers: league["available_players"],
               teamsPlaying: league.teamsPlaying,
             });
           }
@@ -118,13 +122,11 @@ function HomeScreen() {
 
   useEffect(() => {
     console.log(isPicked);
-  }, [isPicked])
+  }, [isPicked]);
 
   if (loading || !userData) {
     return <Text>Loading...</Text>;
   }
-
-
 
   return (
     <LinearGradient
@@ -134,7 +136,6 @@ function HomeScreen() {
       style={styles.gradient} // Add a style for LinearGradient
     >
       <SafeAreaView style={styles.container}>
-
         <View
           style={{
             paddingHorizontal: 20,
@@ -154,11 +155,13 @@ function HomeScreen() {
             <Text style={[{ fontSize: 24, color: "#fff" }, styles.tex]}>
               Leagues
             </Text>
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: "center",
-              alignItems: "center"
-            }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <Pressable
                 style={styles.btn}
                 onPress={() => {
@@ -190,7 +193,7 @@ function HomeScreen() {
                   marginLeft: 10,
                   backgroundColor: "red",
                   padding: 4,
-                  borderRadius: 5
+                  borderRadius: 5,
                 }}
                 onPress={async () => {
                   await database.auth.signOut();
@@ -210,7 +213,10 @@ function HomeScreen() {
                   teams={item.numPlayers}
                   onPress={async () => {
                     setCurrentLeagueID(item.leagueID);
-                    const response = await database.from("leagues").select("").eq('leagueID', item.leagueID);
+                    const response = await database
+                      .from("leagues")
+                      .select("")
+                      .eq("leagueID", item.leagueID);
 
                     if (!response.error) {
                       setCurrentLeagueData(response.data[0]);
@@ -220,7 +226,14 @@ function HomeScreen() {
                 />
               )}
               ListEmptyComponent={
-                <View style={{ margin: "auto", flex: 1, alignItems: "center", justifyContent: "center" }}>
+                <View
+                  style={{
+                    margin: "auto",
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <Text
                     style={{
                       textAlign: "center",
@@ -232,83 +245,111 @@ function HomeScreen() {
                     You're not in any Leagues!
                   </Text>
                   <Text
-                    style={{ textAlign: "center", marginTop: 10, color: "#A9A9B0" }}
+                    style={{
+                      textAlign: "center",
+                      marginTop: 10,
+                      color: "#A9A9B0",
+                    }}
                   >
                     To get started press the "Add" button in the top right!
                   </Text>
                 </View>
               }
               style={{ flexGrow: 1 }}
-              contentContainerStyle={leaguesData.length === 0 ? { flexGrow: 1, } : null}
+              contentContainerStyle={
+                leaguesData.length === 0 ? { flexGrow: 1 } : null
+              }
             />
           ) : (
             <Text>Loading...</Text>
           )}
           <CustomModal isOpen={isOpened}>
-            {isPicked === 'create' ? <CreateLeaugeModalContent />
-              : isPicked === 'join' ? <JoinLeagueModalContent />
-                : <View
+            {isPicked === "create" ? (
+              <CreateLeaugeModalContent />
+            ) : isPicked === "join" ? (
+              <JoinLeagueModalContent />
+            ) : (
+              <View
+                style={{
+                  backgroundColor: "#2E1A47",
+                  padding: 20,
+                  borderRadius: 10,
+                  width: "80%",
+                }}
+              >
+                <Text
                   style={{
-                    backgroundColor: "#2E1A47",
-                    padding: 20,
-                    borderRadius: 10,
-                    width: "80%",
-                  }
-                  }
-                >
-                  <Text style={{
                     color: "white",
                     textAlign: "center",
                     fontFamily: "tex",
-                    fontSize: 24
-                  }}>Create or Join a League!</Text>
-                  <Text style={{
+                    fontSize: 24,
+                  }}
+                >
+                  Create or Join a League!
+                </Text>
+                <Text
+                  style={{
                     color: "white",
                     textAlign: "center",
                     fontFamily: "VisbyCF",
                     fontSize: 16,
                     marginTop: 10,
-                  }}>Get started to play the game with your friends or family!</Text>
-                  <Pressable
-                    style={[styles.btn, { marginTop: 10, backgroundColor: "#5A3EA1" }]}
-                    onPress={() => {
-                      setIsPicked("create");
+                  }}
+                >
+                  Get started to play the game with your friends or family!
+                </Text>
+                <Pressable
+                  style={[
+                    styles.btn,
+                    { marginTop: 10, backgroundColor: "#5A3EA1" },
+                  ]}
+                  onPress={() => {
+                    setIsPicked("create");
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: "tex",
+                      fontSize: 16,
+                      textAlign: "center",
+                      color: "white",
                     }}
                   >
-                    <Text style={{
+                    Create League
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.btn,
+                    {
+                      marginTop: 10,
+                      backgroundColor: "transparent",
+                      borderColor: "#5A3EA1",
+                      borderWidth: 2,
+                    },
+                  ]}
+                  onPress={() => {
+                    setIsPicked("join");
+                  }}
+                >
+                  <Text
+                    style={{
                       fontFamily: "tex",
                       fontSize: 16,
                       textAlign: "center",
-                      color: "white"
-                    }}>
-                      Create League
-                    </Text>
-                  </Pressable>
-                  <Pressable style={[styles.btn,
-                  {
-                    marginTop: 10,
-                    backgroundColor: "transparent",
-                    borderColor: "#5A3EA1",
-                    borderWidth: 2,
-                  }]}
-                    onPress={() => {
-                      setIsPicked("join");
-                    }}>
-                    <Text style={{
-                      fontFamily: "tex",
-                      fontSize: 16,
-                      textAlign: "center",
-                      color: "#5A3EA1"
-                    }}>
-                      Join League
-                    </Text>
-                  </Pressable>
-                </View>}
+                      color: "#5A3EA1",
+                    }}
+                  >
+                    Join League
+                  </Text>
+                </Pressable>
+              </View>
+            )}
           </CustomModal>
         </View>
         <StatusBar style="auto" />
         <Footer></Footer>
-      </SafeAreaView >
+      </SafeAreaView>
     </LinearGradient>
   );
 }

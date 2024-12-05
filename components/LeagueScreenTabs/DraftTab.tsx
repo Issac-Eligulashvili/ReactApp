@@ -170,6 +170,23 @@ export default function DraftTab() {
             </View>
           </View>
         </View>
+        {currentLeagueData.teamsPlaying.length ===
+          currentLeagueData.numPlayers && userDataForCurrentLeague.isAdmin ? (
+          <View
+            style={{
+              marginTop: 20,
+              padding: 10,
+              backgroundColor: "#5A3EA1",
+              borderRadius: 10,
+            }}
+          >
+            <Pressable style={{}}>
+              <Text style={[styles.listText, { textAlign: "center" }]}>
+                Start Draft
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
         <Text
           style={{
             color: "white",
