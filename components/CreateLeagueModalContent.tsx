@@ -37,9 +37,6 @@ function CreateLeaugeModalContent() {
           const id = userData?.id;
           const username = userData?.username;
 
-          console.log(id);
-          console.log(username);
-
           let availablePlayers = await database.from("players").select("player");
           let available_players: { player: any; }[] = [];
 

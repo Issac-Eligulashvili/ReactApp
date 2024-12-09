@@ -61,5 +61,7 @@ export const liveData = create((set) => ({
                // Add the row if it doesn't exist
                return { livePlayerData: [...state.livePlayerData, updatedRow] };
           }
-     })
+     }),
+     liveLeagueData: null,
+     setLiveLeagueData: (data) => set({ liveLeagueData: data }),
 }))

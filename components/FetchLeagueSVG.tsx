@@ -25,5 +25,9 @@ export function LogoSVGComponent({
           fetchLeagueSVG();
      }, []);
 
-     return transformedSvg ? <SvgXml xml={transformedSvg} style={style} {...props} /> : null;
+     if (transformedSvg) {
+          return <SvgXml xml={transformedSvg} style={style} {...props} />
+     } else {
+          return null
+     }
 }

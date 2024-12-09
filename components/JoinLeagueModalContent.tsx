@@ -60,7 +60,6 @@ export default function JoinLeagueModalContent() {
     let leaugeJoiningData = response.data[0] as LeagueData;
     let teamsPlaying = leaugeJoiningData?.teamsPlaying;
     let index = teamsPlaying.findIndex((p: any) => p.playerID === userData.id);
-    console.log(index);
     if (index === -1) {
       setIsJoined(false);
       teamsPlaying.push({
@@ -205,7 +204,7 @@ export default function JoinLeagueModalContent() {
                   navigation.navigate("Leagues");
                 }
               });
-            } catch (err) {}
+            } catch (err) { }
           }}
         >
           <Text

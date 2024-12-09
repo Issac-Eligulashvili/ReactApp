@@ -66,7 +66,6 @@ export default function SignupScreen() {
                 password: text3,
               });
               if (response.error) {
-                console.log(response.error);
               }
 
               const userID = response?.data?.user?.id;

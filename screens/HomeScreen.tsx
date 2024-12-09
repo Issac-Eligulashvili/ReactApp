@@ -18,7 +18,6 @@ import {
   useModalStore,
   useCurrentLeagueStore,
   allLeaguesData,
-  liveData,
 } from "@/states/StoreStates";
 import CreateLeaugeModalContent from "@/components/CreateLeagueModalContent";
 import Footer from "@/components/Footer";
@@ -32,6 +31,7 @@ type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 type LeagueCardProps = {
   leagueName: string;
   teams: number;
+  isDrafting: boolean;
   onPress: () => void;
 };
 
@@ -42,20 +42,31 @@ type League = {
   teamsPlaying: [];
   availablePlayers: string[];
   isDrafted: boolean;
+  seedGenerated: boolean;
+  isDrafting: boolean;
+  taken_players: string[];
 };
 
 const LeagueCard: React.FC<LeagueCardProps> = ({
   leagueName,
   teams,
+  isDrafting,
   onPress,
 }) => {
   return (
     <Pressable onPress={onPress}>
-      <Text
-        style={[{ color: "#fff", fontSize: 16, marginTop: 10 }, styles.visby]}
-      >
-        {leagueName}
-      </Text>
+      <View style={{ flexDirection: "row", marginTop: 10, alignItems: "center" }}>
+        {isDrafting ?
+          <View style={{ height: 8, width: 8, backgroundColor: "red", borderRadius: "50%", marginRight: 5 }}>
+          </View>
+          : null
+        }
+        <Text
+          style={[{ color: "#fff", fontSize: 16 }, styles.visby]}
+        >
+          {leagueName}
+        </Text>
+      </View>
       <Text
         style={[{ color: "#A9A9B0", fontSize: 12, marginTop: 2 }, styles.visby]}
       >
@@ -105,24 +116,21 @@ function HomeScreen() {
               isDrafted: league.isDrafted,
               availablePlayers: league["available_players"],
               teamsPlaying: league.teamsPlaying,
+              seedGenerated: league.seedGenerated,
+              isDrafting: league.isDrafting,
+              taken_players: league.taken_players
             });
           }
         }
       }
 
       // Update state with the fetched leagues
-      console.log(fetchedLeagues);
-
       setLeaguesData(fetchedLeagues);
       setLoading(false);
     }
 
     fetchLeagues();
   }, [userData, loading]);
-
-  useEffect(() => {
-    console.log(isPicked);
-  }, [isPicked]);
 
   if (loading || !userData) {
     return <Text>Loading...</Text>;
@@ -165,7 +173,6 @@ function HomeScreen() {
               <Pressable
                 style={styles.btn}
                 onPress={() => {
-                  console.log("Opening modal");
                   setIsOpened(true);
                 }}
               >
@@ -211,15 +218,10 @@ function HomeScreen() {
                 <LeagueCard
                   leagueName={item["league-name"]}
                   teams={item.numPlayers}
+                  isDrafting={item.isDrafting}
                   onPress={async () => {
-                    setCurrentLeagueID(item.leagueID);
-                    const response = await database
-                      .from("leagues")
-                      .select("")
-                      .eq("leagueID", item.leagueID);
-
-                    if (!response.error) {
-                      setCurrentLeagueData(response.data[0]);
+                    setCurrentLeagueID(item.leagueID); {
+                      setCurrentLeagueData(item);
                       navigation.navigate("Leagues");
                     }
                   }}

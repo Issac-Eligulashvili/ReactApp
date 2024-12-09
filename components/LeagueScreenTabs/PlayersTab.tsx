@@ -45,9 +45,7 @@ export default function PlayersTab() {
     (state) => state.setCurrentLeagueData
   );
   const [currentFilter, setCurrentFilter] = useState("All");
-  const [filteredArray, setFilteredArray] = useState<any>(
-    currentLeagueData["available_players"]
-  );
+  const [filteredArray, setFilteredArray] = useState<any>(null);
   const [search, setSearch] = useState("");
   const { height, width } = useWindowDimensions();
 
@@ -57,7 +55,7 @@ export default function PlayersTab() {
       const playerData = await database
         .from("players")
         .select("*")
-        .in("player", currentLeagueData["available_players"]);
+        .in("player", currentLeagueData.availablePlayers);
       if (playerData.data) {
         setFilteredArray(playerData.data);
       }
@@ -67,7 +65,7 @@ export default function PlayersTab() {
         .select("*")
         .in("position", [currentFilter]);
       const playerData = playerPositionData?.data?.filter((p: any) =>
-        currentLeagueData["available_players"].includes(p.player)
+        currentLeagueData["availablePlayers"].includes(p.player)
       );
       setFilteredArray(playerData);
     }
@@ -79,21 +77,25 @@ export default function PlayersTab() {
 
   useEffect(() => {
     async function doSearch() {
-      const playerData = await database
+      const playerSearch = await database
         .from("players")
         .select("*")
         .ilike("player", `%${search}%`);
-      if (playerData.data) {
-        setFilteredArray(playerData.data);
+      const playerData = playerSearch?.data?.filter((p: any) =>
+        currentLeagueData?.availablePlayers.includes(p.player)
+      );
+      if (playerData) {
+        setFilteredArray(playerData);
       }
     }
+    setCurrentFilter("All");
 
     doSearch();
   }, [search]);
 
   async function addPlayer(player: any) {
     const playerData = await database.from("players").select();
-    let currentAvailPlayers = currentLeagueData["available_players"];
+    let currentAvailPlayers = currentLeagueData["availablePlayers"];
     let clDataClone = { ...currentLeagueData };
     let starters = userDataForCL.team.starters;
     let bench = userDataForCL.team.bench;
@@ -138,7 +140,7 @@ export default function PlayersTab() {
         available_players: currentAvailPlayers,
       })
       .eq("leagueID", currentLeagueID);
-    clDataClone["available_players"] = currentAvailPlayers;
+    clDataClone["availablePlayers"] = currentAvailPlayers;
     setCurrentLeagueData(clDataClone);
   }
 
@@ -218,7 +220,7 @@ export default function PlayersTab() {
       <View style={{ flex: 1, height: "100%" }}>
         <FlatList
           data={filteredArray}
-          keyExtractor={(player) => player.player}
+          keyExtractor={(player, index) => player.id || index.toString()}
           renderItem={({ item, index }) => (
             <View
               style={[
@@ -262,7 +264,7 @@ export default function PlayersTab() {
                     />
                   )}
                 </View>
-                <LogoSVGComponent
+                {/* <LogoSVGComponent
                   uri={`https://issac-eligulashvili.github.io/logo-images/${item?.team}.svg`}
                   style={{
                     height: 20,
@@ -272,7 +274,7 @@ export default function PlayersTab() {
                     right: 0,
                     transform: [{ translateX: "25%" }, { translateY: "25%" }],
                   }}
-                />
+                /> */}
               </View>
               <View
                 style={{

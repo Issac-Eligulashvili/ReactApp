@@ -158,7 +158,6 @@ export default function TeamTab() {
       .eq("leagueID", currentLeagueID);
 
     if (response.error) {
-      console.log("error");
     }
   }
 
@@ -177,7 +176,6 @@ export default function TeamTab() {
       benchClone[swappingIndex] = toSwapName;
     }
 
-    console.log(benchClone);
 
     setStarters(startersClone);
     setBench(benchClone);
@@ -191,7 +189,6 @@ export default function TeamTab() {
     currentTeamsPlaying[playerTeamIndex].team.starters = startersClone;
     currentTeamsPlaying[playerTeamIndex].team.bench = benchClone;
 
-    console.log(currentTeamsPlaying);
 
     const response = await database
       .from("leagues")
@@ -199,7 +196,6 @@ export default function TeamTab() {
       .eq("leagueID", currentLeagueID);
 
     if (response.error) {
-      console.log("error");
     }
   }
   useEffect(() => {
@@ -382,13 +378,12 @@ export default function TeamTab() {
                     setPlayerToSwap(player);
                     setIsSwapOpened(true);
                     setIsBench(false);
-                    console.log("pressed starter");
                   }}
                 >
                   <Image
                     source={
                       positionIcons[
-                        player?.position as keyof typeof positionIcons
+                      player?.position as keyof typeof positionIcons
                       ]
                     }
                     style={styles.positionImage}
@@ -611,7 +606,7 @@ export default function TeamTab() {
                         {
                           backgroundColor:
                             colors[
-                              playerToSwap?.position as keyof typeof colors
+                            playerToSwap?.position as keyof typeof colors
                             ],
                           margin: 0,
                         },
@@ -620,7 +615,7 @@ export default function TeamTab() {
                       <Image
                         source={
                           positionIcons[
-                            playerToSwap?.position as keyof typeof positionIcons
+                          playerToSwap?.position as keyof typeof positionIcons
                           ]
                         }
                         style={styles.positionImage}
@@ -709,7 +704,7 @@ export default function TeamTab() {
                             {
                               color:
                                 colors[
-                                  playerToSwap?.position as keyof typeof colors
+                                playerToSwap?.position as keyof typeof colors
                                 ],
                             },
                           ]}
@@ -776,7 +771,7 @@ export default function TeamTab() {
                       <Image
                         source={
                           positionIcons[
-                            player?.position as keyof typeof positionIcons
+                          player?.position as keyof typeof positionIcons
                           ]
                         }
                         style={styles.positionImage}
@@ -827,7 +822,7 @@ export default function TeamTab() {
                               {
                                 color:
                                   colors[
-                                    player?.position as keyof typeof colors
+                                  player?.position as keyof typeof colors
                                   ],
                               },
                             ]}
@@ -953,7 +948,7 @@ export default function TeamTab() {
                               {
                                 color:
                                   colors[
-                                    player?.position as keyof typeof colors
+                                  player?.position as keyof typeof colors
                                   ],
                               },
                             ]}

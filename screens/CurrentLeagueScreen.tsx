@@ -10,9 +10,20 @@ import MatchupTab from "@/components/LeagueScreenTabs/MatchupTab";
 import LeaguesTab from "@/components/LeagueScreenTabs/LeaguesTab";
 import TeamTab from "@/components/LeagueScreenTabs/TeamTab";
 import PlayersTab from "@/components/LeagueScreenTabs/PlayersTab";
+import { RootStackParamList } from "@/components/type";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { useNavigation } from "@react-navigation/native";
+
+type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
 export default function CurrentLeagueScreen() {
   const currentTab = currentLeagueNav((state) => state.currentTab);
+  const currentLeagueData = useCurrentLeagueStore((state) => state.currentLeagueData);
+  const navigation = useNavigation<AuthScreenNavigationProp>();
+
+  if (currentLeagueData.isDrafting) {
+    navigation.navigate("Draft");
+  }
 
   const renderTabComponent = () => {
     switch (currentTab) {

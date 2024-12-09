@@ -7,10 +7,12 @@ import SignupScreen from "./screens/SignupScreen";
 import HomeScreen from "./screens/HomeScreen";
 import LoginScreen from "./screens/LoginScreen";
 import CurrentLeagueScreen from "./screens/CurrentLeagueScreen";
+import DraftScreen from "./screens/DraftScreen";
 import { RootStackParamList } from "./components/type";
 import { DataProvider } from "./components/UserDataProvider";
 import { FontProvider } from "./components/FontProvider";
 import { RealTimeListener } from "./components/LiveUpdateListener";
+import { LogBox } from "react-native";
 
 const AuthStack = createStackNavigator<RootStackParamList>();
 const HomeStack = createStackNavigator<RootStackParamList>();
@@ -45,12 +47,21 @@ function HomeStackScreen() {
         component={CurrentLeagueScreen}
         options={{ headerShown: false }}
       />
+      <HomeStack.Screen
+        name="Draft"
+        component={DraftScreen}
+        options={{ headerShown: false }}
+      />
     </HomeStack.Navigator>
   );
 }
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  LogBox.ignoreAllLogs(true);
+  console.error = () => { }; // Suppress error logs
+  console.warn = () => { };  // Suppress warning logs
+
 
   useEffect(() => {
     async function fetchUser() {

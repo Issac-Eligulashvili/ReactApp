@@ -73,7 +73,6 @@ export default function LoginScreen() {
                 if (response.error) {
                   alert("Incorrect email or password");
                 } else {
-                  console.log("User successfully");
                   getUserData();
                 }
               }

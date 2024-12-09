@@ -5,12 +5,25 @@ import {
   Pressable,
   StyleSheet,
   Image,
+  useWindowDimensions,
 } from "react-native";
-import React, { useState } from "react";
-import { useCurrentLeagueStore, userDataState } from "@/states/StoreStates";
+import React, { useEffect, useState } from "react";
+import {
+  liveData,
+  useCurrentLeagueStore,
+  userDataState,
+} from "@/states/StoreStates";
 import { MaterialIcons } from "@expo/vector-icons";
 import Foundation from "@expo/vector-icons/Foundation";
 import * as Clipboard from "expo-clipboard";
+import colors from "@/assets/colors";
+import { database } from "@/js/supabaseClient";
+import { useNavigation } from "@react-navigation/native";
+import { RootStackParamList } from "../type";
+import { StackNavigationProp } from "@react-navigation/stack";
+
+type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
+
 
 export default function DraftTab() {
   const userData = userDataState((state) => state.userData);
@@ -20,58 +33,110 @@ export default function DraftTab() {
   const currentLeagueData = useCurrentLeagueStore(
     (state) => state.currentLeagueData
   );
+  const setCurrentLeagueData = useCurrentLeagueStore(
+    (state) => state.setCurrentLeagueData
+  );
   const currentLeagueID = useCurrentLeagueStore(
     (state) => state.currentLeagueID
   );
+  const takenPlayers = liveData((state) => state.liveLeagueData);
   const [isCoppied, setIsCoppied] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [usersInLeague, setUsersInLeague] = useState<any>([]);
+  const navigation = useNavigation<AuthScreenNavigationProp>();
+  const { width } = useWindowDimensions();
 
-  let players = [];
+  useEffect(() => {
+  }, [takenPlayers]);
 
-  for (let i = 0; i < currentLeagueData.numPlayers; i++) {
-    let crown: any = [];
+  function generateUsersInLeague(leagueData: any) {
+    let users = [];
+    for (let i = 0; i < leagueData.numPlayers; i++) {
+      let crown: any = [];
 
-    if (currentLeagueData.teamsPlaying[i]) {
-      if (currentLeagueData.teamsPlaying[i].isAdmin) {
-        crown.push(
-          <Foundation
-            name="crown"
-            size={16}
-            color="#fdb640"
-            style={{
-              marginLeft: 5,
-            }}
-          />
+      if (leagueData.teamsPlaying[i]) {
+        if (leagueData.teamsPlaying[i].isAdmin) {
+          crown.push(
+            <Foundation
+              name="crown"
+              size={16}
+              color="#fdb640"
+              style={{
+                marginLeft: 5,
+              }}
+            />
+          );
+        } else {
+          crown.push(null);
+        }
+
+        const playerId = leagueData.teamsPlaying[i].id || `player-${i}`;
+
+        users.push(
+          <View key={playerId}>
+            <View
+              style={[
+                {
+                  flexDirection: "row",
+                  alignItems: "center",
+                },
+                i != 0 ? { marginTop: 10 } : {},
+              ]}
+            >
+              <Text style={styles.listText}>
+                {i + 1}. {leagueData.teamsPlaying[i].playerName}
+              </Text>
+              {crown[0]}
+            </View>
+            {leagueData.seedGenerated ? (
+              <Text style={{ fontFamily: "tex", color: colors.subtext }}>
+                Draft Seed #{leagueData.teamsPlaying[i].seed}
+              </Text>
+            ) : (
+              <Text style={{ fontFamily: "tex", color: colors.subtext }}>
+                No seed generated yet
+              </Text>
+            )}
+          </View>
         );
       } else {
-        crown.push(null);
-      }
-
-      const playerId = currentLeagueData.teamsPlaying[i].id || `player-${i}`;
-
-      players.push(
-        <View
-          key={playerId}
-          style={[
-            {
-              flexDirection: "row",
-              alignItems: "center",
-            },
-            i != 0 ? { marginTop: 10 } : {},
-          ]}
-        >
-          <Text style={styles.listText}>
-            {i + 1}. {currentLeagueData.teamsPlaying[i].playerName}
+        users.push(
+          <Text key={`team-${i}`} style={[styles.listText, { marginTop: 10 }]}>
+            {i + 1}. Team {i + 1}
           </Text>
-          {crown[0]}
-        </View>
-      );
-    } else {
-      players.push(
-        <Text key={`team-${i}`} style={[styles.listText, { marginTop: 10 }]}>
-          {i + 1}. Team {i + 1}
-        </Text>
-      );
+        );
+      }
     }
+    return users;
+  }
+
+  useEffect(() => {
+    setUsersInLeague(generateUsersInLeague(currentLeagueData));
+  }, [currentLeagueData]);
+
+  async function generateDraftSeeding() {
+    const shuffledPlayers = [...currentLeagueData.teamsPlaying];
+    let currentTeamsPlaying = [...currentLeagueData.teamsPlaying];
+    let dataClone = { ...currentLeagueData };
+
+    for (let i = shuffledPlayers.length - 1; i > 0; i--) {
+      const randomIndex = Math.floor(Math.random() * (i + 1));
+      [shuffledPlayers[i], shuffledPlayers[randomIndex]] = [
+        shuffledPlayers[randomIndex],
+        shuffledPlayers[i],
+      ];
+    }
+
+    shuffledPlayers.forEach((player: any, index: number) => {
+      player.seed = index + 1;
+    });
+    const response = await database
+      .from("leagues")
+      .update({ teamsPlaying: currentTeamsPlaying, seedGenerated: true })
+      .eq("leagueID", currentLeagueID);
+    dataClone.teamsPlaying = currentTeamsPlaying;
+    dataClone.seedGenerated = true;
+    setCurrentLeagueData(dataClone);
   }
 
   return (
@@ -170,21 +235,91 @@ export default function DraftTab() {
             </View>
           </View>
         </View>
+
         {currentLeagueData.teamsPlaying.length ===
           currentLeagueData.numPlayers && userDataForCurrentLeague.isAdmin ? (
-          <View
-            style={{
-              marginTop: 20,
-              padding: 10,
-              backgroundColor: "#5A3EA1",
-              borderRadius: 10,
-            }}
-          >
-            <Pressable style={{}}>
-              <Text style={[styles.listText, { textAlign: "center" }]}>
-                Start Draft
-              </Text>
-            </Pressable>
+          <View>
+            <Text
+              style={{
+                color: "white",
+                marginVertical: 20,
+                fontFamily: "tex",
+                fontSize: 16,
+              }}
+            >
+              Begin Drafting
+            </Text>
+            <View style={width > 768 ? { flexDirection: "row" } : null}>
+              <View
+                style={[
+                  {
+                    padding: 10,
+                    borderRadius: 10,
+                  },
+                  !currentLeagueData.seedGenerated
+                    ? { backgroundColor: "#5A3EA1" }
+                    : { backgroundColor: colors.subtext },
+                  width > 768
+                    ? { width: "50%", marginHorizontal: 5 }
+                    : { width: "100%", marginBottom: 10 },
+                ]}
+              >
+                {!currentLeagueData.seedGenerated ? (
+                  <Pressable
+                    onPress={() => {
+                      generateDraftSeeding();
+                    }}
+                  >
+                    <Text style={[styles.listText, { textAlign: "center" }]}>
+                      Generate Seeding
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <View>
+                    <Text style={[styles.listText, { textAlign: "center" }]}>
+                      Generate Seeding
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <View
+                style={[
+                  {
+                    padding: 10,
+                    borderRadius: 10,
+                  },
+                  currentLeagueData.seedGenerated
+                    ? { backgroundColor: "#5A3EA1" }
+                    : { backgroundColor: colors.subtext },
+                  width > 768
+                    ? { width: "50%", marginHorizontal: 5 }
+                    : { width: "100%" },
+                ]}
+              >
+                {currentLeagueData.seedGenerated ? (
+                  <Pressable onPress={() => {
+                    navigation.navigate("Draft");
+                    async function startDraft() {
+                      await database.from("leagues").update({ isDrafting: true }).eq("leagueID", currentLeagueID);
+                      const clDataClone = { ...currentLeagueData };
+                      clDataClone.isDrafting = true;
+                      setCurrentLeagueData(clDataClone);
+                    }
+                    startDraft();
+                  }}>
+                    <Text style={[styles.listText, { textAlign: "center" }]}>
+                      Start Draft
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <View>
+                    <Text style={[styles.listText, { textAlign: "center" }]}>
+                      Start Draft
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
           </View>
         ) : null}
         <Text
@@ -205,7 +340,7 @@ export default function DraftTab() {
             borderRadius: 10,
           }}
         >
-          {players}
+          {usersInLeague}
         </ScrollView>
       </View>
     </View>

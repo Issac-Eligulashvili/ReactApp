@@ -15,3 +15,10 @@ export const positionAbbriviations = {
      "Controller": "Cont",
      "Sentinel": "Senti"
 }
+
+export const regionAbbr = {
+     "Americas": "AMER",
+     "Europe": "EMEA",
+     "APAC": "APAC",
+     "CN": "CN"
+}

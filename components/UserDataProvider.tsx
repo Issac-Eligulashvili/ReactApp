@@ -50,7 +50,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       };
 
       const { data } = await database.auth.getUser();
-      console.log(data);
 
       userData.id = data?.user?.id!;
 
