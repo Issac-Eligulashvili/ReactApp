@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { database } from "../js/supabaseClient";
 import React from "react";
 import { userDataState } from "@/states/StoreStates";
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 type League = {
   teamsPlaying: []; // Array of players in this league
@@ -31,6 +32,7 @@ export default function LoginScreen() {
   const [text2, setText2] = useState("");
   const navigation = useNavigation<AuthScreenNavigationProp>();
   const setUserData = userDataState((state) => state.setUserData);
+  const [isHidden, setIsHidden] = useState(true);
 
   return (
     <View style={styles.container}>
@@ -55,12 +57,17 @@ export default function LoginScreen() {
           <KeyboardAvoidingView style={styles.inputMargin}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Text style={[styles.inputLable, styles.visby]}>Password</Text>
-            <CustomTextInput
-              value={text2}
-              onChange={(newText) => setText2(newText)}
-              placeholder=""
-              secureTextEntry={true}
-            ></CustomTextInput>
+            <View style={{ position: "relative" }}>
+              <CustomTextInput
+                value={text2}
+                onChange={(newText) => setText2(newText)}
+                placeholder=""
+                secureTextEntry={isHidden}
+              ></CustomTextInput>
+              {isHidden ?
+                <Ionicons name="eye-off" size={24} color="black" /> :
+                <Ionicons name="eye" size={24} color="black" />}
+            </View>
           </KeyboardAvoidingView>
           <Pressable
             style={styles.button}
