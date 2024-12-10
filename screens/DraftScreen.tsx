@@ -273,7 +273,6 @@ export default function DraftScreen() {
                     let currentData = userDataForCL;
                     currentData.team.starters = starters;
                     currentData.team.bench = bench;
-                    setUserDataForCurrentLeague(currentData);
                     const currentTeamsPlaying = takenPlayers.teamsPlaying;
                     const playerTeamIndex = currentTeamsPlaying.findIndex((player: any) => {
                          return player.playerID === userData.id;
@@ -304,7 +303,6 @@ export default function DraftScreen() {
 
                     currentData.team.starters = starters;
                     currentData.team.bench = bench;
-                    setUserDataForCurrentLeague(currentData);
                     const currentTeamsPlaying = takenPlayers.teamsPlaying;
                     const playerTeamIndex = currentTeamsPlaying.findIndex((player: any) => {
                          return player.playerID === userData.id;
@@ -356,13 +354,6 @@ export default function DraftScreen() {
           getTakenPlayersData(clData.taken_players);
      }, []);
 
-     useEffect(() => {
-          setUserDataForCurrentLeague(
-               clData.teamsPlaying.find(
-                    (player: { playerID: any }) => player.playerID === userData.id
-               )
-          );
-     }, [clData]);
 
      async function increaseCurrentTurn() {
           let turn = currentTurn;
@@ -419,6 +410,7 @@ export default function DraftScreen() {
                const uData = takenPlayers?.teamsPlaying.filter((u: any) => {
                     return u.playerID === userData?.id;
                });
+
                setUserDataForCurrentLeague(uData[0]);
                const wholeTeam = uData[0].team.starters.concat(uData[0].team.bench);
                async function getTeamData() {
@@ -429,13 +421,6 @@ export default function DraftScreen() {
                     let numOfPlayersForPos = {
                          "All": { num: result?.length }
                     } as any;
-                    result?.forEach((p: any) => {
-                         if (numOfPlayersForPos[p.position]) {
-                              numOfPlayersForPos[p.position].num++;
-                         } else {
-                              numOfPlayersForPos[p.position] = { num: 1 };
-                         }
-                    });
                     navOrder.forEach((pos: any) => {
                          let maxPlayers = 1;
                          if (pos === "All") {
@@ -444,8 +429,17 @@ export default function DraftScreen() {
                          if (pos === "Flex") {
                               maxPlayers = 2;
                          }
-                         numOfPlayersForPos[pos].max = maxPlayers;
+                         if (pos != "All") {
+                              numOfPlayersForPos[pos] = { num: 0, max: maxPlayers };
+                         } else {
+                              numOfPlayersForPos[pos].max = maxPlayers;
+                         }
                     })
+                    result?.forEach((p: any) => {
+                         if (numOfPlayersForPos[p.position]) {
+                              numOfPlayersForPos[p.position].num++;
+                         }
+                    });
 
                     setAmtPlayersLeft(numOfPlayersForPos)
                });
@@ -508,6 +502,7 @@ export default function DraftScreen() {
                                    onPress={() => {
                                         navigation.navigate("Leagues");
                                         const clDataClone = { ...clData };
+                                        const uData = { ...takenPlayers };
                                         clDataClone.isDrafted = true;
                                         setCurrentLeagueData(clDataClone);
                                    }}

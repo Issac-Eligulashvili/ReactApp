@@ -5,6 +5,9 @@ import {
   Pressable,
   StyleSheet,
   Image,
+  useWindowDimensions,
+  Platform,
+  SectionList,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import {
@@ -59,6 +62,7 @@ export default function TeamTab() {
     (state) => state.currentLeagueID
   );
   const [benchComponent, setBenchComponent] = useState<any>([]);
+  const [teamComponent, setTeamComponent] = useState<any>([]);
 
   const startersOrder = [
     "IGL",
@@ -228,7 +232,20 @@ export default function TeamTab() {
     setBenchComponent(renderComponent);
   }, [benchData]);
 
+  useEffect(() => {
+    const arr = [{ title: "Starters", data: {} }, { title: "Bench", data: {} }];
+
+    arr[0].data = startersComponent;
+    arr[1].data = benchComponent;
+    console.log(arr);
+    setTeamComponent(arr);
+
+  }, [startersComponent, benchComponent])
+
   const record = `${userDataForCL.wins} - ${userDataForCL.losses}`;
+  const { height } = useWindowDimensions();
+  let listHeight;
+  { Platform.OS === 'web' ? listHeight = 33 : listHeight = height - 470 + 23 }
   return (
     <View style={{ width: "100%", flexGrow: 1 }}>
       <View
@@ -331,159 +348,56 @@ export default function TeamTab() {
           flexGrow: 1,
         }}
       >
-        <Text
+
+        <SectionList
           style={{
-            fontFamily: "VisbyCF",
-            color: "white",
-            fontSize: 16,
-          }}
-        >
-          Starters
-        </Text>
-        <ScrollView
-          style={{
-            marginTop: 23,
             flexDirection: "row",
             flexGrow: 1,
             width: "100%",
+            height: listHeight,
           }}
-          contentContainerStyle={{
-            width: "100%",
-          }}
-        >
-          {startersComponent.map((player: any, index: number) => {
-            return (
-              <View
+          sections={teamComponent}
+          keyExtractor={(item, index) => item + index}
+          renderItem={({ item: player, index, section }) => (
+            <View
+              style={[
+                {
+                  height: 32,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "100%",
+                },
+                index === 0 ? {} : { marginTop: 15 },
+              ]}
+              key={index}
+            >
+              <Pressable
                 style={[
-                  {
-                    height: 32,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    width: "100%",
-                  },
-                  index === 0 ? {} : { marginTop: 15 },
+                  section.title === "Starters" ? {
+                    backgroundColor:
+                      colors[player?.position as keyof typeof colors],
+                  } : { backgroundColor: colors.Bench },
+                  styles.positionBox,
                 ]}
-                key={index}
-              >
-                <Pressable
-                  style={[
-                    {
-                      backgroundColor:
-                        colors[player?.position as keyof typeof colors],
-                    },
-                    styles.positionBox,
-                  ]}
-                  onPress={() => {
-                    setPosToSwap(player?.position);
-                    setPlayerToSwap(player);
-                    setIsSwapOpened(true);
-                    setIsBench(false);
-                  }}
-                >
-                  <Image
-                    source={
-                      positionIcons[
-                      player?.position as keyof typeof positionIcons
-                      ]
-                    }
-                    style={styles.positionImage}
-                  />
-                </Pressable>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    flexGrow: 1,
-                  }}
-                >
-                  <View>
-                    <Text
-                      style={
-                        player.player != "Empty"
-                          ? [styles.playerName]
-                          : styles.empty
-                      }
-                    >
-                      {player.player}
-                    </Text>
-                    {player.player != "Empty" ? (
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          marginTop: -4,
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.playerInfoText,
-                            {
-                              color:
-                                colors[player?.position as keyof typeof colors],
-                            },
-                          ]}
-                        >
-                          {positionAbbriviations[
-                            player?.position as keyof typeof positionAbbriviations
-                          ].toUpperCase()}{" "}
-                        </Text>
-                        <Text
-                          style={[styles.playerInfoText, { color: "#ABABAB" }]}
-                        >
-                          • {player?.teamAbbr}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  <Text
-                    style={
-                      player.points != null ? [styles.playerName] : styles.empty
-                    }
-                  >
-                    {player?.points ?? "-"}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-
-          <Text
-            style={{
-              fontFamily: "VisbyCF",
-              color: "white",
-              fontSize: 16,
-              marginVertical: 23,
-            }}
-          >
-            Bench
-          </Text>
-          {benchComponent.map((player: any, index: number) => {
-            return (
-              <View
-                style={[
-                  {
-                    height: 32,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    width: "100%",
-                  },
-                  index === 0 ? {} : { marginTop: 15 },
-                ]}
-                key={index}
-              >
-                <Pressable
-                  style={[
-                    {
-                      backgroundColor: colors.Bench,
-                    },
-                    styles.positionBox,
-                  ]}
-                  onPress={() => {
-                    setPosToSwap(player?.position);
-                    setPlayerToSwap(player);
-                    setIsSwapOpened(true);
+                onPress={() => {
+                  setPosToSwap(player?.position);
+                  setPlayerToSwap(player);
+                  setIsSwapOpened(true);
+                  if (section.title === "Bench") {
                     setIsBench(true);
-                  }}
-                >
+                  } else {
+                    setIsBench(false);
+                  }
+                }}
+              >
+                {section.title === "Starters" ? <Image
+                  source={
+                    positionIcons[
+                    player?.position as keyof typeof positionIcons
+                    ]
+                  }
+                  style={styles.positionImage}
+                /> :
                   <Text
                     style={{
                       fontFamily: "The-Bold-Font",
@@ -493,181 +407,317 @@ export default function TeamTab() {
                   >
                     BN
                   </Text>
-                </Pressable>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    flexGrow: 1,
-                  }}
-                >
-                  <View>
-                    <Text
-                      style={
-                        player.player != "Empty"
-                          ? [styles.playerName]
-                          : styles.empty
-                      }
-                    >
-                      {player.player}
-                    </Text>
-                    {player.player != "Empty" ? (
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          marginTop: -4,
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.playerInfoText,
-                            {
-                              color:
-                                colors[player?.position as keyof typeof colors],
-                            },
-                          ]}
-                        >
-                          {positionAbbriviations[
-                            player?.position as keyof typeof positionAbbriviations
-                          ].toUpperCase()}{" "}
-                        </Text>
-                        <Text
-                          style={[styles.playerInfoText, { color: "#ABABAB" }]}
-                        >
-                          • {player?.teamAbbr}
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
+                }
+              </Pressable>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  flexGrow: 1,
+                }}
+              >
+                <View>
                   <Text
                     style={
-                      player.points != null ? [styles.playerName] : styles.empty
+                      player.player != "Empty"
+                        ? [styles.playerName]
+                        : styles.empty
                     }
                   >
-                    {player?.points ?? "-"}
+                    {player.player}
                   </Text>
-                </View>
-              </View>
-            );
-          })}
-          <SlideModal isOpen={isSwapOpened}>
-            <View
-              style={{
-                backgroundColor: "rgb(46, 26, 71)",
-                borderTopRightRadius: 10,
-                borderTopLeftRadius: 10,
-                width: "100%",
-                paddingBottom: 10,
-              }}
-            >
-              <View
-                style={{
-                  justifyContent: "space-between",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingHorizontal: 20,
-                  paddingTop: 10,
-                }}
-              >
-                <View style={{ height: 24, width: 24 }} />
-                <Text
-                  style={{
-                    color: "white",
-                    fontFamily: "tex",
-                    fontSize: 20,
-                    textAlign: "center",
-                  }}
-                >
-                  Swap Players
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    setIsSwapOpened(false);
-                    setPlayerToSwap(null);
-                  }}
-                >
-                  <MaterialIcons name="close" size={24} color="white" />
-                </Pressable>
-              </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: 10,
-                  paddingHorizontal: 20,
-                }}
-              >
-                <View style={{ flexDirection: "row" }}>
-                  {!isBench ? (
+                  {player.player != "Empty" ? (
                     <View
-                      style={[
-                        styles.positionBox,
-                        {
-                          backgroundColor:
-                            colors[
-                            playerToSwap?.position as keyof typeof colors
-                            ],
-                          margin: 0,
-                        },
-                      ]}
-                    >
-                      <Image
-                        source={
-                          positionIcons[
-                          playerToSwap?.position as keyof typeof positionIcons
-                          ]
-                        }
-                        style={styles.positionImage}
-                      />
-                    </View>
-                  ) : (
-                    <View
-                      style={[
-                        {
-                          backgroundColor: colors.Bench,
-                          margin: 0,
-                        },
-                        styles.positionBox,
-                      ]}
+                      style={{
+                        flexDirection: "row",
+                        marginTop: -4,
+                      }}
                     >
                       <Text
-                        style={{
-                          fontFamily: "The-Bold-Font",
-                          fontSize: 11,
-                          color: "white",
-                        }}
+                        style={[
+                          styles.playerInfoText,
+                          {
+                            color:
+                              colors[player?.position as keyof typeof colors],
+                          },
+                        ]}
                       >
-                        BN
+                        {positionAbbriviations[
+                          player?.position as keyof typeof positionAbbriviations
+                        ].toUpperCase()}{" "}
+                      </Text>
+                      <Text
+                        style={[styles.playerInfoText, { color: "#ABABAB" }]}
+                      >
+                        • {player?.teamAbbr}
                       </Text>
                     </View>
-                  )}
+                  ) : null}
+                </View>
+                <Text
+                  style={
+                    player.points != null ? [styles.playerName] : styles.empty
+                  }
+                >
+                  {player?.points ?? "-"}
+                </Text>
+              </View>
+            </View>
+          )}
+          renderSectionHeader={({ section: { title } }) =>
+          (<Text
+            style={[{
+              fontFamily: "VisbyCF",
+              color: "white",
+              fontSize: 16,
+            }, title === "Bench" ? { marginVertical: 23 } : { marginBottom: 23 }]}
+          >
+            {title}
+          </Text>)
+          }
+          stickySectionHeadersEnabled={false}
+          contentContainerStyle={{ width: "100%", flexGrow: 1, paddingBottom: 40 }}
+          scrollEnabled={true}
+          decelerationRate={"normal"}
+          snapToAlignment="start"
+          bounces={true}
+        />
+        <SlideModal isOpen={isSwapOpened}>
+          <View
+            style={{
+              backgroundColor: "rgb(46, 26, 71)",
+              borderTopRightRadius: 10,
+              borderTopLeftRadius: 10,
+              width: "100%",
+              paddingBottom: 10,
+            }}
+          >
+            <View
+              style={{
+                justifyContent: "space-between",
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: 20,
+                paddingTop: 10,
+              }}
+            >
+              <View style={{ height: 24, width: 24 }} />
+              <Text
+                style={{
+                  color: "white",
+                  fontFamily: "tex",
+                  fontSize: 20,
+                  textAlign: "center",
+                }}
+              >
+                Swap Players
+              </Text>
+              <Pressable
+                onPress={() => {
+                  setIsSwapOpened(false);
+                  setPlayerToSwap(null);
+                }}
+              >
+                <MaterialIcons name="close" size={24} color="white" />
+              </Pressable>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 10,
+                paddingHorizontal: 20,
+              }}
+            >
+              <View style={{ flexDirection: "row" }}>
+                {!isBench ? (
                   <View
+                    style={[
+                      styles.positionBox,
+                      {
+                        backgroundColor:
+                          colors[
+                          playerToSwap?.position as keyof typeof colors
+                          ],
+                        margin: 0,
+                      },
+                    ]}
+                  >
+                    <Image
+                      source={
+                        positionIcons[
+                        playerToSwap?.position as keyof typeof positionIcons
+                        ]
+                      }
+                      style={styles.positionImage}
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      {
+                        backgroundColor: colors.Bench,
+                        margin: 0,
+                      },
+                      styles.positionBox,
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: "The-Bold-Font",
+                        fontSize: 11,
+                        color: "white",
+                      }}
+                    >
+                      BN
+                    </Text>
+                  </View>
+                )}
+                <View
+                  style={
+                    playerToSwap?.player === "Empty"
+                      ? { width: 16 }
+                      : { marginHorizontal: 16 }
+                  }
+                >
+                  {playerToSwap?.player === "Empty" ? null : (
+                    <View style={styles.playerImageContainer}>
+                      {playerToSwap?.image_link.substring(0, 2) === "//" ? (
+                        <Image
+                          source={{
+                            uri: `https:${playerToSwap?.image_link}`,
+                          }}
+                          style={styles.playerImage}
+                        />
+                      ) : (
+                        <Image
+                          source={require("@/assets/img/base/ph/sil.png")}
+                          style={styles.playerImage}
+                        />
+                      )}
+                    </View>
+                  )}
+                  <LogoSVGComponent
+                    uri={`https://issac-eligulashvili.github.io/logo-images/${playerToSwap?.team}.svg`}
+                    style={{
+                      height: 20,
+                      width: 20,
+                      position: "absolute",
+                      bottom: 0,
+                      right: 0,
+                      transform: [
+                        { translateX: "25%" },
+                        { translateY: "25%" },
+                      ],
+                    }}
+                  />
+                </View>
+                <View style={{ justifyContent: "center" }}>
+                  <Text
                     style={
-                      playerToSwap?.player === "Empty"
-                        ? { width: 16 }
-                        : { marginHorizontal: 16 }
+                      playerToSwap?.player != "Empty"
+                        ? [styles.playerName]
+                        : styles.empty
                     }
                   >
-                    {playerToSwap?.player === "Empty" ? null : (
-                      <View style={styles.playerImageContainer}>
-                        {playerToSwap?.image_link.substring(0, 2) === "//" ? (
-                          <Image
-                            source={{
-                              uri: `https:${playerToSwap?.image_link}`,
-                            }}
-                            style={styles.playerImage}
-                          />
-                        ) : (
-                          <Image
-                            source={require("@/assets/img/base/ph/sil.png")}
-                            style={styles.playerImage}
-                          />
-                        )}
-                      </View>
-                    )}
+                    {playerToSwap?.player}
+                  </Text>
+                  {playerToSwap?.player != "Empty" ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        marginTop: -4,
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.playerInfoText,
+                          {
+                            color:
+                              colors[
+                              playerToSwap?.position as keyof typeof colors
+                              ],
+                          },
+                        ]}
+                      >
+                        {positionAbbriviations[
+                          playerToSwap?.position as keyof typeof positionAbbriviations
+                        ]?.toUpperCase()}{" "}
+                      </Text>
+                      <Text
+                        style={[styles.playerInfoText, { color: "#ABABAB" }]}
+                      >
+                        • {playerToSwap?.teamAbbr}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+              <Text
+                style={
+                  playerToSwap?.points != null
+                    ? [styles.playerName]
+                    : styles.empty
+                }
+              >
+                {playerToSwap?.points ?? "-"}
+              </Text>
+            </View>
+            <View
+              style={{
+                borderBottomColor: colors.subtext,
+                borderBottomWidth: StyleSheet.hairlineWidth,
+                width: "100%",
+                marginVertical: 15,
+              }}
+            />
+            {starterSwappablePlayers.map((player: Player, index: number) => (
+              <Pressable
+                style={[
+                  {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingHorizontal: 20,
+                  },
+                  index === 0 ? {} : { marginTop: 10 },
+                ]}
+                onPress={() => {
+                  swapStarters(player?.player);
+                  setIsSwapOpened(false);
+                }}
+                key={index}
+              >
+                <View style={{ flexDirection: "row" }}>
+                  <View
+                    style={[
+                      styles.positionBox,
+                      {
+                        backgroundColor:
+                          colors[player?.position as keyof typeof colors],
+                        margin: 0,
+                      },
+                    ]}
+                  >
+                    <Image
+                      source={
+                        positionIcons[
+                        player?.position as keyof typeof positionIcons
+                        ]
+                      }
+                      style={styles.positionImage}
+                    />
+                  </View>
+                  <View style={{ marginHorizontal: 16 }}>
+                    <View style={styles.playerImageContainer}>
+                      <Image
+                        source={{ uri: `https:${player?.image_link}` }}
+                        style={styles.playerImage}
+                      />
+                    </View>
                     <LogoSVGComponent
-                      uri={`https://issac-eligulashvili.github.io/logo-images/${playerToSwap?.team}.svg`}
+                      uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
                       style={{
                         height: 20,
                         width: 20,
@@ -684,14 +734,14 @@ export default function TeamTab() {
                   <View style={{ justifyContent: "center" }}>
                     <Text
                       style={
-                        playerToSwap?.player != "Empty"
+                        player?.player != "Empty"
                           ? [styles.playerName]
                           : styles.empty
                       }
                     >
-                      {playerToSwap?.player}
+                      {player?.player}
                     </Text>
-                    {playerToSwap?.player != "Empty" ? (
+                    {player?.player != "Empty" ? (
                       <View
                         style={{
                           flexDirection: "row",
@@ -704,19 +754,22 @@ export default function TeamTab() {
                             {
                               color:
                                 colors[
-                                playerToSwap?.position as keyof typeof colors
+                                player?.position as keyof typeof colors
                                 ],
                             },
                           ]}
                         >
                           {positionAbbriviations[
-                            playerToSwap?.position as keyof typeof positionAbbriviations
+                            player?.position as keyof typeof positionAbbriviations
                           ]?.toUpperCase()}{" "}
                         </Text>
                         <Text
-                          style={[styles.playerInfoText, { color: "#ABABAB" }]}
+                          style={[
+                            styles.playerInfoText,
+                            { color: "#ABABAB" },
+                          ]}
                         >
-                          • {playerToSwap?.teamAbbr}
+                          • {player?.teamAbbr}
                         </Text>
                       </View>
                     ) : null}
@@ -724,267 +777,145 @@ export default function TeamTab() {
                 </View>
                 <Text
                   style={
-                    playerToSwap?.points != null
+                    player?.points != null
                       ? [styles.playerName]
                       : styles.empty
                   }
                 >
-                  {playerToSwap?.points ?? "-"}
+                  {player?.points ?? "-"}
                 </Text>
-              </View>
-              <View
+              </Pressable>
+            ))}
+            <View style={{ paddingHorizontal: 20 }}>
+              <Text
                 style={{
-                  borderBottomColor: colors.subtext,
-                  borderBottomWidth: StyleSheet.hairlineWidth,
-                  width: "100%",
-                  marginVertical: 15,
+                  fontFamily: "VisbyCF",
+                  color: "white",
+                  fontSize: 16,
+                  marginVertical: 23,
                 }}
-              />
-              {starterSwappablePlayers.map((player: Player, index: number) => (
-                <Pressable
-                  style={[
-                    {
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      paddingHorizontal: 20,
-                    },
-                    index === 0 ? {} : { marginTop: 10 },
-                  ]}
-                  onPress={() => {
-                    swapStarters(player?.player);
-                    setIsSwapOpened(false);
-                  }}
-                  key={index}
-                >
-                  <View style={{ flexDirection: "row" }}>
-                    <View
-                      style={[
-                        styles.positionBox,
-                        {
-                          backgroundColor:
-                            colors[player?.position as keyof typeof colors],
-                          margin: 0,
-                        },
-                      ]}
-                    >
-                      <Image
-                        source={
-                          positionIcons[
-                          player?.position as keyof typeof positionIcons
-                          ]
-                        }
-                        style={styles.positionImage}
-                      />
-                    </View>
-                    <View style={{ marginHorizontal: 16 }}>
-                      <View style={styles.playerImageContainer}>
-                        <Image
-                          source={{ uri: `https:${player?.image_link}` }}
-                          style={styles.playerImage}
-                        />
-                      </View>
-                      <LogoSVGComponent
-                        uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
-                        style={{
-                          height: 20,
-                          width: 20,
-                          position: "absolute",
-                          bottom: 0,
-                          right: 0,
-                          transform: [
-                            { translateX: "25%" },
-                            { translateY: "25%" },
-                          ],
-                        }}
-                      />
-                    </View>
-                    <View style={{ justifyContent: "center" }}>
-                      <Text
-                        style={
-                          player?.player != "Empty"
-                            ? [styles.playerName]
-                            : styles.empty
-                        }
-                      >
-                        {player?.player}
-                      </Text>
-                      {player?.player != "Empty" ? (
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            marginTop: -4,
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.playerInfoText,
-                              {
-                                color:
-                                  colors[
-                                  player?.position as keyof typeof colors
-                                  ],
-                              },
-                            ]}
-                          >
-                            {positionAbbriviations[
-                              player?.position as keyof typeof positionAbbriviations
-                            ]?.toUpperCase()}{" "}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.playerInfoText,
-                              { color: "#ABABAB" },
-                            ]}
-                          >
-                            • {player?.teamAbbr}
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
-                  </View>
-                  <Text
-                    style={
-                      player?.points != null
-                        ? [styles.playerName]
-                        : styles.empty
-                    }
-                  >
-                    {player?.points ?? "-"}
-                  </Text>
-                </Pressable>
-              ))}
-              <View style={{ paddingHorizontal: 20 }}>
-                <Text
-                  style={{
-                    fontFamily: "VisbyCF",
-                    color: "white",
-                    fontSize: 16,
-                    marginVertical: 23,
-                  }}
-                >
-                  Bench
-                </Text>
-              </View>
-              {benchSwappablePlayers.map((player: Player, index: number) => (
-                <Pressable
-                  style={[
-                    {
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      paddingHorizontal: 20,
-                    },
-                    index === 0 ? {} : { marginTop: 10 },
-                  ]}
-                  onPress={() => {
-                    swapBenchStarter(player?.player);
-                    setIsSwapOpened(false);
-                  }}
-                  key={index}
-                >
-                  <View style={{ flexDirection: "row" }}>
-                    <View
-                      style={[
-                        {
-                          backgroundColor: colors.Bench,
-                          margin: 0,
-                        },
-                        styles.positionBox,
-                      ]}
-                    >
-                      <Text
-                        style={{
-                          fontFamily: "The-Bold-Font",
-                          fontSize: 11,
-                          color: "white",
-                        }}
-                      >
-                        BN
-                      </Text>
-                    </View>
-                    <View style={{ marginHorizontal: 16 }}>
-                      <View style={styles.playerImageContainer}>
-                        <Image
-                          source={{ uri: `https:${player?.image_link}` }}
-                          style={styles.playerImage}
-                        />
-                      </View>
-                      <LogoSVGComponent
-                        uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
-                        style={{
-                          height: 20,
-                          width: 20,
-                          position: "absolute",
-                          bottom: 0,
-                          right: 0,
-                          transform: [
-                            { translateX: "25%" },
-                            { translateY: "25%" },
-                          ],
-                        }}
-                      />
-                    </View>
-                    <View style={{ justifyContent: "center" }}>
-                      <Text
-                        style={
-                          player?.player != "Empty"
-                            ? [styles.playerName]
-                            : styles.empty
-                        }
-                      >
-                        {player?.player}
-                      </Text>
-                      {player?.player != "Empty" ? (
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            marginTop: -4,
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.playerInfoText,
-                              {
-                                color:
-                                  colors[
-                                  player?.position as keyof typeof colors
-                                  ],
-                              },
-                            ]}
-                          >
-                            {positionAbbriviations[
-                              player?.position as keyof typeof positionAbbriviations
-                            ]?.toUpperCase()}{" "}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.playerInfoText,
-                              { color: "#ABABAB" },
-                            ]}
-                          >
-                            • {player?.teamAbbr}
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
-                  </View>
-                  <Text
-                    style={
-                      player?.points != null
-                        ? [styles.playerName]
-                        : styles.empty
-                    }
-                  >
-                    {player?.points ?? "-"}
-                  </Text>
-                </Pressable>
-              ))}
+              >
+                Bench
+              </Text>
             </View>
-          </SlideModal>
-        </ScrollView>
+            {benchSwappablePlayers.map((player: Player, index: number) => (
+              <Pressable
+                style={[
+                  {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingHorizontal: 20,
+                  },
+                  index === 0 ? {} : { marginTop: 10 },
+                ]}
+                onPress={() => {
+                  swapBenchStarter(player?.player);
+                  setIsSwapOpened(false);
+                }}
+                key={index}
+              >
+                <View style={{ flexDirection: "row" }}>
+                  <View
+                    style={[
+                      {
+                        backgroundColor: colors.Bench,
+                        margin: 0,
+                      },
+                      styles.positionBox,
+                    ]}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: "The-Bold-Font",
+                        fontSize: 11,
+                        color: "white",
+                      }}
+                    >
+                      BN
+                    </Text>
+                  </View>
+                  <View style={{ marginHorizontal: 16 }}>
+                    <View style={styles.playerImageContainer}>
+                      <Image
+                        source={{ uri: `https:${player?.image_link}` }}
+                        style={styles.playerImage}
+                      />
+                    </View>
+                    <LogoSVGComponent
+                      uri={`https://issac-eligulashvili.github.io/logo-images/${player?.team}.svg`}
+                      style={{
+                        height: 20,
+                        width: 20,
+                        position: "absolute",
+                        bottom: 0,
+                        right: 0,
+                        transform: [
+                          { translateX: "25%" },
+                          { translateY: "25%" },
+                        ],
+                      }}
+                    />
+                  </View>
+                  <View style={{ justifyContent: "center" }}>
+                    <Text
+                      style={
+                        player?.player != "Empty"
+                          ? [styles.playerName]
+                          : styles.empty
+                      }
+                    >
+                      {player?.player}
+                    </Text>
+                    {player?.player != "Empty" ? (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          marginTop: -4,
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.playerInfoText,
+                            {
+                              color:
+                                colors[
+                                player?.position as keyof typeof colors
+                                ],
+                            },
+                          ]}
+                        >
+                          {positionAbbriviations[
+                            player?.position as keyof typeof positionAbbriviations
+                          ]?.toUpperCase()}{" "}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.playerInfoText,
+                            { color: "#ABABAB" },
+                          ]}
+                        >
+                          • {player?.teamAbbr}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+                <Text
+                  style={
+                    player?.points != null
+                      ? [styles.playerName]
+                      : styles.empty
+                  }
+                >
+                  {player?.points ?? "-"}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </SlideModal>
       </View>
-    </View>
+    </View >
   );
 }
 
