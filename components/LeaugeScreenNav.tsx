@@ -213,7 +213,6 @@ export default function LeagueScreenNav() {
                          </Pressable>
                     </View>
                </CustomModal >
-               {/* TODO: Finish creating the league screen with a working functional leage navbar. */}
           </View >
      )
 }

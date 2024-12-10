@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, FlatList, StyleSheet, useWindowDimensions, Platform } from "react-native";
 import React from "react";
 import { useCurrentLeagueStore } from "@/states/StoreStates";
 import colors from "@/assets/colors";
@@ -8,7 +8,8 @@ export default function LeaguesTab() {
           (state) => state.currentLeagueData
      );
      const { height } = useWindowDimensions();
-     const renderHeight = height - 262
+     let renderHeight;
+     renderHeight = height - 288;
 
      let usersInLeague = [];
 
