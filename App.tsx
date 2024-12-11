@@ -8,6 +8,7 @@ import HomeScreen from "./screens/HomeScreen";
 import LoginScreen from "./screens/LoginScreen";
 import CurrentLeagueScreen from "./screens/CurrentLeagueScreen";
 import DraftScreen from "./screens/DraftScreen";
+import ChatScreen from "./screens/ChatScreen";
 import { RootStackParamList } from "./components/type";
 import { DataProvider } from "./components/UserDataProvider";
 import { FontProvider } from "./components/FontProvider";
@@ -50,6 +51,11 @@ function HomeStackScreen() {
       <HomeStack.Screen
         name="Draft"
         component={DraftScreen}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="Chat"
+        component={ChatScreen}
         options={{ headerShown: false }}
       />
     </HomeStack.Navigator>

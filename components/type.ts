@@ -4,4 +4,6 @@ export type RootStackParamList = {
      Login: undefined;
      Leagues: undefined;
      Draft: undefined;
+     Footer: undefined;
+     Chat: undefined;
 };

@@ -64,9 +64,18 @@ export default function LoginScreen() {
                 placeholder=""
                 secureTextEntry={isHidden}
               ></CustomTextInput>
-              {isHidden ?
-                <Ionicons name="eye-off" size={24} color="black" /> :
-                <Ionicons name="eye" size={24} color="black" />}
+              <Pressable
+                style={{
+                  position: "absolute",
+                  right: 10,
+                  top: "50%",
+                  transform: [{ translateY: "-50%" }]
+                }}
+                onPress={() => { setIsHidden(!isHidden) }}>
+                {isHidden ?
+                  <Ionicons name="eye-off" size={24} color="white" /> :
+                  <Ionicons name="eye" size={24} color="white" />}
+              </Pressable>
             </View>
           </KeyboardAvoidingView>
           <Pressable
@@ -89,6 +98,8 @@ export default function LoginScreen() {
                   id: "",
                   username: "",
                   leaguesIsInIDS: [] as string[],
+                  friends: [] as string[],
+                  friend_requests: {}
                 };
 
                 const { data } = await database.auth.getUser();
@@ -97,11 +108,13 @@ export default function LoginScreen() {
 
                 const response = await database
                   .from("users")
-                  .select("username")
+                  .select("*")
                   .eq("id", userData.id);
 
                 if (!response.error) {
                   userData.username = response.data[0]?.username!;
+                  userData.friends = response.data[0]?.friends;
+                  userData.friend_requests = response.data[0]?.friend_requests;
                 }
 
                 const leagues: LeaguesResponse = await database

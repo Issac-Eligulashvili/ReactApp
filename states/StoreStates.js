@@ -1,4 +1,3 @@
-import { P } from "@expo/html-elements";
 import { create } from "zustand";
 
 export const useModalStore = create((set) => ({
@@ -64,4 +63,11 @@ export const liveData = create((set) => ({
      }),
      liveLeagueData: null,
      setLiveLeagueData: (data) => set({ liveLeagueData: data }),
+}))
+
+export const navigation = create((set) => ({
+     previousScreen: "",
+     setPreviousScreen: (screen) => set({ previousScreen: screen }),
+     currentScreen: "Home",
+     setCurrentScreen: (screen) => set({ currentScreen: screen })
 }))

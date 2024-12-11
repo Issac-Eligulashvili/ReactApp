@@ -25,6 +25,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@/components/type";
 import JoinLeagueModalContent from "@/components/JoinLeagueModalContent";
+import { navigation as n } from "@/states/StoreStates";
 
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
@@ -93,6 +94,9 @@ function HomeScreen() {
   );
   const isPicked = useModalStore((state) => state.isPicked);
   const setIsPicked = useModalStore((state) => state.setIsPicked);
+  const setPreviousScreen = n((state) => state.setPreviousScreen);
+
+  setPreviousScreen("Home");
 
   useEffect(() => {
     if (loading || !userData) return;
@@ -222,6 +226,7 @@ function HomeScreen() {
                   onPress={async () => {
                     setCurrentLeagueID(item.leagueID); {
                       setCurrentLeagueData(item);
+                      setPreviousScreen("Leagues");
                       navigation.navigate("Leagues");
                     }
                   }}

@@ -18,6 +18,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { RootStackParamList } from "./type";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation } from "@react-navigation/native";
+import { navigation as n } from "@/states/StoreStates";
 
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
@@ -46,6 +47,8 @@ export default function JoinLeagueModalContent() {
   const setIsPicked = useModalStore((state) => state.setIsPicked);
   const [isJoined, setIsJoined] = useState(false);
   const navigation = useNavigation<AuthScreenNavigationProp>();
+  const setPreviousScreen = n((state) => state.setPreviousScreen);
+
   async function joinLeague() {
     const response = await database
       .from("leagues")
@@ -201,6 +204,7 @@ export default function JoinLeagueModalContent() {
               await joinLeague().then(() => {
                 if (!isJoined) {
                   setIsOpened(false);
+                  setPreviousScreen("Leagues");
                   navigation.navigate("Leagues");
                 }
               });

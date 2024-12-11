@@ -23,6 +23,7 @@ import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "./type";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Clipboard from "expo-clipboard";
+import { navigation as n } from "@/states/StoreStates";
 
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
@@ -46,6 +47,7 @@ function CreateLeaugeModalContent() {
   const progressAnim = useRef(new Animated.Value(1)).current;
   const setIsPicked = useModalStore((state) => state.setIsPicked);
   const [isCoppied, setIsCoppied] = useState(false);
+  const setPreviousScreen = n((state) => state.setPreviousScreen);
 
   async function createLeague() {
     const id = userData?.id;
@@ -293,6 +295,7 @@ function CreateLeaugeModalContent() {
                 style={[styles.btn, { marginTop: 20 }]}
                 onPress={() => {
                   setIsOpened(false);
+                  setPreviousScreen("Leagues");
                   navigation.navigate("Leagues");
                 }}
               >

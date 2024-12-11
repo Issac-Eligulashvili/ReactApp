@@ -5,6 +5,7 @@ import Logo from "../components/Logo";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../components/type";
 import { StackNavigationProp } from "@react-navigation/stack";
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useEffect, useState } from "react";
 import React from "react";
@@ -20,6 +21,7 @@ export default function SignupScreen() {
   const [text2, setText2] = useState("");
   const [text3, setText3] = useState("");
   const navigation = useNavigation<AuthScreenNavigationProp>();
+  const [isHidden, setIsHidden] = useState(true);
 
   return (
     <View style={styles.container}>
@@ -51,12 +53,26 @@ export default function SignupScreen() {
           </View>
           <View style={styles.inputMargin}>
             <Text style={[styles.inputLable, styles.visby]}>Password</Text>
-            <CustomTextInput
-              value={text3}
-              onChange={(newText) => setText3(newText)}
-              placeholder=""
-              secureTextEntry={true}
-            ></CustomTextInput>
+            <View>
+              <CustomTextInput
+                value={text3}
+                onChange={(newText) => setText3(newText)}
+                placeholder=""
+                secureTextEntry={isHidden}
+              ></CustomTextInput>
+              <Pressable
+                style={{
+                  position: "absolute",
+                  right: 10,
+                  top: "50%",
+                  transform: [{ translateY: "-50%" }]
+                }}
+                onPress={() => { setIsHidden(!isHidden) }}>
+                {isHidden ?
+                  <Ionicons name="eye-off" size={24} color="white" /> :
+                  <Ionicons name="eye" size={24} color="white" />}
+              </Pressable>
+            </View>
           </View>
           <Pressable
             style={styles.button}
