@@ -48,7 +48,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         username: "",
         leaguesIsInIDS: [] as string[],
         friends: [] as string[],
-        friend_requests: {}
+        friendRequests: {}
       };
 
       const { data } = await database.auth.getUser();
@@ -63,7 +63,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       if (!response.error) {
         userData.username = response.data[0]?.username!;
         userData.friends = response.data[0]?.friends;
-        userData.friend_requests = response.data[0]?.friendRequests;
+        userData.friendRequests = response.data[0]?.friendRequests;
       }
 
       const leagues: LeaguesResponse = await database

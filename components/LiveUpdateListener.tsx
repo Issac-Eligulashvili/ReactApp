@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { database } from "@/js/supabaseClient";
-import { liveData, useCurrentLeagueStore } from "@/states/StoreStates";
+import { liveData, useCurrentLeagueStore, userDataState } from "@/states/StoreStates";
 
 export const RealTimeListener = () => {
   const setLivePlayerData = liveData((state) => state.setLivePlayerData);
@@ -9,6 +9,7 @@ export const RealTimeListener = () => {
   const currentLeagueID = useCurrentLeagueStore(
     (state) => state.currentLeagueID
   );
+  const setUserData = userDataState((state) => state.setUserData);
 
   useEffect(() => {
     async function fetchTableData() {
@@ -68,6 +69,22 @@ export const RealTimeListener = () => {
       database.removeChannel(subscription);
     };
   }, [setLLD, currentLeagueID]);
+
+  useEffect(() => {
+    const subscription = database
+      .channel("live-user-data")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "users" },
+        async (payload: any) => {
+          const { data } = await database.auth.getUser();
+          const userID = payload.new.id;
+          if (userID === data?.user?.id) {
+            setUserData(payload.new);
+          }
+        }
+      ).subscribe()
+  }, [setUserData])
 
   return null; // This component doesn't render anything
 };

@@ -99,7 +99,7 @@ export default function LoginScreen() {
                   username: "",
                   leaguesIsInIDS: [] as string[],
                   friends: [] as string[],
-                  friend_requests: {}
+                  friendRequests: {}
                 };
 
                 const { data } = await database.auth.getUser();
@@ -114,7 +114,7 @@ export default function LoginScreen() {
                 if (!response.error) {
                   userData.username = response.data[0]?.username!;
                   userData.friends = response.data[0]?.friends;
-                  userData.friend_requests = response.data[0]?.friend_requests;
+                  userData.friendRequests = response.data[0]?.friendRequests;
                 }
 
                 const leagues: LeaguesResponse = await database
