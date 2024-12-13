@@ -5,5 +5,6 @@ export type RootStackParamList = {
      Leagues: undefined;
      Draft: undefined;
      Footer: undefined;
-     Chat: undefined;
+     Chat: { name: string };
+     Friends: undefined;
 };

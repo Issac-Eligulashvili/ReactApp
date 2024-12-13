@@ -8,12 +8,13 @@ import HomeScreen from "./screens/HomeScreen";
 import LoginScreen from "./screens/LoginScreen";
 import CurrentLeagueScreen from "./screens/CurrentLeagueScreen";
 import DraftScreen from "./screens/DraftScreen";
-import ChatScreen from "./screens/ChatScreen";
+import FriendsScreen from "./screens/FriendsScreen";
 import { RootStackParamList } from "./components/type";
 import { DataProvider } from "./components/UserDataProvider";
 import { FontProvider } from "./components/FontProvider";
 import { RealTimeListener } from "./components/LiveUpdateListener";
 import { LogBox } from "react-native";
+import ChatScreen from "./screens/ChatScreen";
 
 const AuthStack = createStackNavigator<RootStackParamList>();
 const HomeStack = createStackNavigator<RootStackParamList>();
@@ -54,9 +55,16 @@ function HomeStackScreen() {
         options={{ headerShown: false }}
       />
       <HomeStack.Screen
+        name="Friends"
+        component={FriendsScreen}
+        options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
         name="Chat"
         component={ChatScreen}
-        options={{ headerShown: false }}
+        options={({ route }) => ({
+          headerShown: false,
+        })}
       />
     </HomeStack.Navigator>
   );

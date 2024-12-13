@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, StyleSheet, Pressable, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, Pressable, SafeAreaView, Image } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { userDataState } from "@/states/StoreStates";
 import { database } from "@/js/supabaseClient";
@@ -12,7 +12,11 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
-import Svg, { Path } from "react-native-svg";
+import { RootStackParamList } from "./type";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { useNavigation } from "@react-navigation/native";
+
+type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
 export default function PhoneChatScreen() {
   const uData = userDataState((state) => state.userData);
@@ -26,6 +30,8 @@ export default function PhoneChatScreen() {
   const [navContainerWidth, setNavContainerWidth] = useState<number>(0);
   const [requestsContainerWidth, setRequestsContainerWidth] =
     useState<number>(0);
+  const navigation = useNavigation<AuthScreenNavigationProp>();
+
 
   const left = useSharedValue(2);
   const translateX = useSharedValue(0);
@@ -210,6 +216,16 @@ export default function PhoneChatScreen() {
           </Text>
         </Pressable>
       </View>
+      <FlatList
+        data={uData.friends}
+        keyExtractor={(item) => item}
+        renderItem={({ item }) => (
+          <Pressable style={{ padding: 10, borderRadius: 8 }} onPress={() => { navigation.navigate("Chat", { name: item }) }}>
+            <Text style={styles.text}>{item}</Text>
+          </Pressable>
+        )}
+        style={{ marginTop: 20 }}
+      />
       <SlideModal isOpen={showPlayers}>
         <SafeAreaView
           style={{
@@ -333,7 +349,7 @@ export default function PhoneChatScreen() {
           >
             <Feather name="arrow-left" size={24} color="white" />
           </Pressable>
-          <View style={{ width: "70%", marginHorizontal: "auto" }}>
+          <View style={{ width: "70%", marginHorizontal: "auto", flexGrow: 1 }}>
             <Text
               style={{
                 fontFamily: "tex",
@@ -347,7 +363,6 @@ export default function PhoneChatScreen() {
             </Text>
             <View
               style={{
-                padding: 10,
                 flexDirection: "row",
                 backgroundColor: "#3c296c",
                 borderRadius: 30,
@@ -362,6 +377,7 @@ export default function PhoneChatScreen() {
                 style={{
                   width: "50%",
                   zIndex: 2,
+                  marginVertical: 10
                 }}
                 onPress={() => {
                   setRequestsNav(false);
@@ -382,6 +398,7 @@ export default function PhoneChatScreen() {
                 style={{
                   width: "50%",
                   zIndex: 2,
+                  marginVertical: 10
                 }}
                 onPress={() => {
                   setRequestsNav(true);
@@ -404,14 +421,14 @@ export default function PhoneChatScreen() {
                     width: "50%",
                     backgroundColor: "#5A3EA1",
                     position: "absolute",
-                    borderRadius: "inherit",
+                    borderRadius: 30,
                     top: "50%",
                     transform: [{ translateY: "-50%" }],
                     height: "90%",
                   },
                   animatedStyle,
                 ]}
-              ></Animated.View>
+              />
             </View>
             <View
               style={{ flex: 1, overflow: "hidden", flexDirection: "row" }}
@@ -469,32 +486,8 @@ export default function PhoneChatScreen() {
                           justifyContent: "center",
                         }}
                       >
-                        <Svg>
-                          <Path
-                            d="M85.44,31.72l-14.69-10.67-18.57-13.47c-4.03-2.92-10.33-2.92-14.36,0l-18.56,13.47-14.14,10.26c-2.81,2.04-5.12,6.56-5.12,10.04v42.08c0,2.36.89,4.51,2.35,6.16.06.13.12.25.22.36.17.2.37.35.6.45,1.64,1.45,3.79,2.34,6.15,2.34h71.38c2.36,0,4.52-.89,6.16-2.35.22-.1.43-.24.59-.44.09-.11.16-.24.21-.36,1.46-1.64,2.35-3.8,2.35-6.16v-42.77c0-3.16-2-7.09-4.56-8.95ZM58.16,64.03c-.66-.54-.66-1.55,0-2.09l8.45-6.89,19.91-16.23c.19.64.3,1.26.3,1.83v42.77c0,.46-.05.92-.15,1.35-.22.96-1.4,1.35-2.16.72l-26.34-21.47ZM6.43,34.3l14.7-10.67s0,0,0,0l17.77-12.9c3.36-2.44,8.85-2.44,12.2,0l17.77,12.9s0,0,0,0l14.69,10.67c.19.13.37.29.54.46.57.56.52,1.5-.1,2l-19.42,15.83-9.39,7.65c-.49.4-1.2.4-1.7,0l-.67-.55c-4.31-3.51-11.36-3.51-15.67,0l-.67.55c-.49.4-1.2.4-1.7,0l-9.39-7.65-19.42-15.83c-.62-.5-.67-1.45-.1-2,.18-.17.36-.33.55-.46ZM5.5,85.5c-.77.63-1.94.24-2.16-.72-.1-.43-.15-.89-.15-1.35v-42.77c0-.57.11-1.19.3-1.83l19.91,16.23,8.45,6.89c.66.54.66,1.55,0,2.09l-26.34,21.47ZM9.31,89.55s-.02,0-.03,0c-1.23,0-1.74-1.61-.78-2.39l31.53-25.7c2.7-2.2,7.25-2.2,9.95,0l31.53,25.7c.95.78.45,2.38-.78,2.39-.01,0-.02,0-.03,0,0,0-71.38,0-71.38,0Z"
-                            fill={"white"}
-                          />
-                          <Path
-                            fill="none"
-                            stroke={"#b3b3b3"}
-                            d="M37.05,59.19c-.25-.22-.5-.44-.75-.66"
-                          />
-                          <Path
-                            fill="none"
-                            stroke={"#b3b3b3"}
-                            strokeDasharray={1.98}
-                            d="M34.85,57.18c-11.11-10.76-15.65-25.03-12.28-34.55,2.41-6.79,7.05-8.77,7.05-8.77.86-.38,4.06-1.81,6.37,0,3.75,2.93,4.01,13.42,0,18.95-4.42,6.09-13.33,5.24-18.14,0-5.22-5.7-6.18-17.24-1.03-26.48"
-                          />
-                          <Path
-                            fill="none"
-                            stroke={"#b3b3b3"}
-                            d="M17.32,5.47c.17-.28.35-.57.54-.84"
-                          />
-                          <Path
-                            fill={"white"}
-                            d="M21.01,4.47c.02-.79-.15-2.1-.28-2.74.02-.02.04-.05.06-.08.19-.32.02-.78-.37-1.07l.2-.35c.1-.17-.17-.33-.27-.15l-.2.35c-.45-.2-.93-.12-1.12.21-.02.03-.03.06-.04.09-.62.21-1.84.7-2.52,1.12-.12.07-.25.16-.28.3-.04.18.09.34.24.45.35.28.8.42,1.25.45.02.44.21.82.55,1.02s.76.17,1.15-.03c.25.38.59.69,1.01.86.17.07.38.1.51-.02.1-.1.11-.25.12-.4Z"
-                          />
-                        </Svg>
+                        <Image source={require("../assets/img/emptyMail.png")} style={{ height: "50%", resizeMode: 'contain', aspectRatio: "448 / 561" }} />
+                        <Text style={[styles.text, { marginTop: 5 }]}>You have no current requests</Text>
                       </View>
                     }
                   />

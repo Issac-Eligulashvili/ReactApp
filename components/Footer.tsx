@@ -21,7 +21,7 @@ export default function Footer() {
   return (
     <View style={{ marginBottom: 16, flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
       <Pressable style={{ justifyContent: "center", alignItems: "center" }}
-        onPress={() => { setActiveTab("Home"); navigation.navigate("Home") }}
+        onPress={() => { setActiveTab("Home"); navigation.goBack() }}
       >
         <Svg
           width="32"
@@ -49,7 +49,7 @@ export default function Footer() {
         </Text>
       </Pressable>
       <Pressable style={{ justifyContent: "center", alignItems: "center" }}
-        onPress={() => { setActiveTab("Chat"); navigation.navigate("Chat") }}
+        onPress={() => { setActiveTab("Chat"); navigation.navigate("Friends") }}
       >
         {activeTab === "Chat" ? <Ionicons name="chatbubble-ellipses" size={30} color="white" /> : <Ionicons name="chatbubble-ellipses-outline" size={30} color="white" />}
         <Text
