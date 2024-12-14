@@ -35,7 +35,7 @@ export default function LoginScreen() {
   const [isHidden, setIsHidden] = useState(true);
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <LinearGradient
         colors={["#2E1A47", "#0B1124"]}
         start={{ x: 0, y: 0 }}
@@ -44,8 +44,7 @@ export default function LoginScreen() {
       >
         <Logo width={128} height={128} style={styles.logo} />
         <View>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View>
             <Text style={[styles.inputLable, styles.visby]}>Email</Text>
             <CustomTextInput
               value={text1}
@@ -53,9 +52,8 @@ export default function LoginScreen() {
               placeholder=""
               secureTextEntry={false}
             ></CustomTextInput>
-          </KeyboardAvoidingView>
-          <KeyboardAvoidingView style={styles.inputMargin}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          </View>
+          <View style={styles.inputMargin}>
             <Text style={[styles.inputLable, styles.visby]}>Password</Text>
             <View style={{ position: "relative" }}>
               <CustomTextInput
@@ -77,7 +75,7 @@ export default function LoginScreen() {
                   <Ionicons name="eye" size={24} color="white" />}
               </Pressable>
             </View>
-          </KeyboardAvoidingView>
+          </View>
           <Pressable
             style={styles.button}
             onPress={() => {
@@ -158,7 +156,7 @@ export default function LoginScreen() {
           </View>
         </View>
       </LinearGradient >
-    </View >
+    </KeyboardAvoidingView >
   );
 }
 

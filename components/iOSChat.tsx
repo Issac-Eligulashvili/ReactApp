@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable, SafeAreaView, Image } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { userDataState } from "@/states/StoreStates";
@@ -15,6 +15,20 @@ import Animated, {
 import { RootStackParamList } from "./type";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation } from "@react-navigation/native";
+import { filter } from "lodash";
+
+type message = {
+  senderID: string;
+  message: string;
+  timestamp: string;
+  senderUserName: string;
+}
+type chatroom = {
+  id: string;
+  messages: message[];
+  users: string[];
+  most_recent_chat: message;
+}
 
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
@@ -31,6 +45,7 @@ export default function PhoneChatScreen() {
   const [requestsContainerWidth, setRequestsContainerWidth] =
     useState<number>(0);
   const navigation = useNavigation<AuthScreenNavigationProp>();
+  const [messages, setMessages] = useState<any>([]);
 
 
   const left = useSharedValue(2);
@@ -56,7 +71,7 @@ export default function PhoneChatScreen() {
   }, [requestsNav]);
 
   async function handleRequests(user: string, accepted: boolean) {
-    console.log(accepted);
+
     const uDataClone = { ...uData };
     if (accepted) {
       const userToAdd = (await database
@@ -87,7 +102,6 @@ export default function PhoneChatScreen() {
       .select("*")
       .eq("username", user)) as any;
     let currentToAddRequestsList = userToRemove.data[0].friendRequests;
-    console.log(currentToAddRequestsList);
     const requestToRemoveIndex = currentToAddRequestsList.outgoing.indexOf(
       uData.username
     );
@@ -114,7 +128,6 @@ export default function PhoneChatScreen() {
       .select("*")
       .eq("username", user)) as any;
     let currentToAddRequestsList = userToRemove.data[0].friendRequests;
-    console.log(currentToAddRequestsList);
     const requestToRemoveIndex = currentToAddRequestsList.recieved.indexOf(
       uData.username
     );
@@ -165,6 +178,37 @@ export default function PhoneChatScreen() {
       }
     }
   }
+
+  async function getLatestMessage(item: any, index: number) {
+    const arrOfChatUsers = [uData.username, item];
+    const response = await database
+      .from("chatrooms")
+      .select("*")
+      .contains('users', arrOfChatUsers);
+
+    if (response.data) {
+      const filteredChatroom: chatroom | undefined = (response.data as chatroom[]).find((chatroom) => {
+        return chatroom.users.length === arrOfChatUsers.length;
+      });
+
+      const latestMessage = filteredChatroom?.most_recent_chat;
+      setMessages((prevMessages: any) => ({
+        ...prevMessages,
+        [item]: { message: latestMessage, index: index }, // Store the message for this specific item
+      }));
+    }
+  }
+
+  useEffect(() => {
+    console.log(messages);
+  }, [messages])
+
+  useEffect(() => {
+    uData.friends.forEach((friend: string, index: number) => {
+      getLatestMessage(friend, index);
+      // const latestMessage = messages;
+    })
+  }, [uData.friends])
 
   return (
     <View>
@@ -219,14 +263,31 @@ export default function PhoneChatScreen() {
       <FlatList
         data={uData.friends}
         keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <Pressable style={{ padding: 10, borderRadius: 8 }} onPress={() => { navigation.navigate("Chat", { name: item }) }}>
-            <Text style={styles.text}>{item}</Text>
-          </Pressable>
-        )}
+        renderItem={({ item }) => {
+          const latestMessage = messages[item];
+          let sentUsername;
+          latestMessage?.message?.senderID === uData.id ?
+            sentUsername = "You" :
+            sentUsername = latestMessage?.message?.senderUserName
+          const formattedString = `${sentUsername}: ${latestMessage?.message?.message}`
+
+          return (
+            <Pressable style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 }} onPress={() => { navigation.navigate("Chat", { name: item }) }}>
+              <Text style={styles.text}>{item}</Text>
+              {latestMessage?.message ?
+                <Text style={{
+                  color: "rgb(169, 169, 176)",
+                  fontSize: 12,
+                }}>{formattedString}</Text> : null
+              }
+            </Pressable>
+          )
+
+        }
+        }
         style={{ marginTop: 20 }}
       />
-      <SlideModal isOpen={showPlayers}>
+      <SlideModal isOpen={showPlayers} >
         <SafeAreaView
           style={{
             backgroundColor: "rgb(46, 26, 71)",
@@ -333,7 +394,7 @@ export default function PhoneChatScreen() {
             </Pressable>
           </View>
         </SafeAreaView>
-      </SlideModal>
+      </SlideModal >
       <SlideModal isOpen={showRequests}>
         <SafeAreaView
           style={{
@@ -520,7 +581,7 @@ export default function PhoneChatScreen() {
           </View>
         </SafeAreaView>
       </SlideModal>
-    </View>
+    </View >
   );
 }
 
