@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, SafeAreaView, Pressable, KeyboardAvoidingView, FlatList } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, StyleSheet, SafeAreaView, Pressable, KeyboardAvoidingView, FlatList, NativeModules, useWindowDimensions } from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "@/components/type";
 import { LinearGradient } from "expo-linear-gradient";
@@ -9,8 +9,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { userDataState } from "@/states/StoreStates";
 import { TextInput } from "react-native-gesture-handler";
 import colors from "@/assets/colors";
-import { filter, lastIndexOf } from "lodash";
 import { database } from "@/js/supabaseClient";
+import { useReducedMotion } from "react-native-reanimated";
 
 type ChatScreenProps = RouteProp<RootStackParamList, "Chat">;
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
@@ -26,6 +26,9 @@ type chatroom = {
      users: string[];
      most_recent_message: message;
 }
+type ChatroomPayload = {
+     new: chatroom;
+}
 
 export default function ChatScreen({ route }: { route: ChatScreenProps }) {
      const navigation = useNavigation<AuthScreenNavigationProp>();
@@ -34,8 +37,13 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
      const [placeholder, setPlaceholder] = useState("");
      const [input, setInput] = useState<string>("");
      const [currentChatID, setCurrentChatID] = useState("");
+     const [keyPressed, setKeyPressed] = useState("");
      const { name } = route.params;
      const arrOfChatUsers = [uData.username, name];
+     const [heightOfContainer, setHeightOfContainer] = useState<number>();
+     const flatlistRef = useRef<FlatList>(null);
+     let heightRef = useRef<number>(0);
+     const { height } = useWindowDimensions();
 
      useEffect(() => {
           setPlaceholder(`Message ${name}`);
@@ -63,10 +71,36 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
                }
           }
           setInitMessages();
+          if (flatlistRef.current) {
+               flatlistRef.current.scrollToEnd({ animated: false });
+          }
      }, [])
+     useEffect(() => {
+          const subscription = database
+               .channel(`chat-${currentChatID}`)
+               .on(
+                    "postgres_changes",
+                    { event: "*", schema: "public", table: "chatrooms" },
+                    (payload: any) => {
+                         setMessages(payload.new.messages);
+                    }
+               ).subscribe();
+
+          return () => {
+               database.removeChannel(subscription);
+          };
+     }, [setMessages])
 
      useEffect(() => {
-          console.log(messages);
+          if (keyPressed === "Enter") {
+               sendMessage();
+          }
+     }, [keyPressed]);
+
+     useEffect(() => {
+          if (flatlistRef.current) {
+               flatlistRef.current.scrollToEnd({ animated: false });
+          }
      }, [messages])
 
      async function sendMessage() {
@@ -85,107 +119,119 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
                ])
           let newMessages;
           messages ? newMessages = [...messages, message] : newMessages = [message];
-          console.log(newMessages);
           const { error } = await database
                .from("chatrooms")
                .update({ messages: newMessages, most_recent_chat: message })
                .eq("id", currentChatID)
-          error ? console.log(error) : null
           setInput("")
      }
 
      return (
-          <LinearGradient
-               colors={["#2E1A47", "#0B1124"]}
-               start={{ x: 0, y: 0 }}
-               end={{ x: 1, y: 1 }}
-               style={styles.gradient}
-          >
-               <SafeAreaView style={styles.container}>
-                    <KeyboardAvoidingView behavior="padding" style={{ flexGrow: 1, marginTop: 10, width: "100%" }}>
-                         <View
-                              style={{ flexDirection: "row", justifyContent: "space-between" }}
-                         >
-                              <Pressable
-                                   onPress={() => navigation.goBack()}
-                                   style={{ marginLeft: 10 }}
+          <>
+               <LinearGradient
+                    colors={["#2E1A47", "#0B1124"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.gradient}
+               >
+                    <SafeAreaView style={[styles.container, { height: height }]} onLayout={(event) => {
+                         setHeightOfContainer(event.nativeEvent.layout.height);
+                         heightRef.current = event.nativeEvent.layout.height;
+                    }}>
+                         <KeyboardAvoidingView behavior="padding" style={{ flexGrow: 1, marginTop: 10, width: "100%" }}>
+                              <View
+                                   style={{ flexDirection: "row", justifyContent: "space-between" }}
                               >
-                                   <Feather name="arrow-left" size={24} color="white" />
-                              </Pressable>
-                              <Text style={styles.text}>{name}</Text>
-                              <View style={{ height: "100%", width: 24, marginRight: 10 }} />
-                         </View>
-                         <View
-                              style={{
-                                   height: 2,
-                                   width: "100%",
-                                   backgroundColor: "rgba(255,255,255,0.1)",
-                                   marginTop: 10,
-                              }}
-                         />
-                         <View style={{ flex: 1 }}>
-                              <FlatList style={{ flexGrow: 1 }}
-                                   keyExtractor={(item: message, index) => index.toString()}
-                                   renderItem={({ item, index }: { item: message, index: number }) => {
-                                        let previousItem;
-                                        if (messages[index - 1]) {
-                                             previousItem = messages[index - 1];
-                                        }
-                                        const isDifferentID = previousItem?.senderID != item.senderID
-
-                                        return (<View style={[{ paddingHorizontal: 10 },
-                                        item.senderID === uData.id ?
-                                             { alignItems: "flex-end" } :
-                                             { alignItems: "flex-start" },
-                                        !isDifferentID ?
-                                             { marginTop: 0 } :
-                                             { marginTop: 5 }
-                                        ]}>
-                                             <View style={[{ width: "70%" },
-                                             item.senderID === uData.id ?
-                                                  { alignItems: "flex-end" } :
-                                                  { alignItems: "flex-start" }]}>
-                                                  {isDifferentID ?
-                                                       (<Text style={{ color: colors.subtext }}>{item.senderUserName}</Text>) :
-                                                       null
-                                                  }
-                                                  <Text style={[styles.text, { flexWrap: "wrap", maxWidth: "100%" }]}>
-                                                       {item.message}
-                                                  </Text>
-                                             </View>
-                                        </View>)
-                                   }}
-                                   data={messages}
-                              />
+                                   <Pressable
+                                        onPress={() => navigation.goBack()}
+                                        style={{ marginLeft: 10 }}
+                                   >
+                                        <Feather name="arrow-left" size={24} color="white" />
+                                   </Pressable>
+                                   <Text style={styles.text}>{name}</Text>
+                                   <View style={{ height: "100%", width: 24, marginRight: 10 }} />
+                              </View>
                               <View
                                    style={{
                                         height: 2,
                                         width: "100%",
                                         backgroundColor: "rgba(255,255,255,0.1)",
+                                        marginTop: 10,
                                    }}
                               />
-                              <View style={{ padding: 10, flexDirection: "row" }}>
-                                   <TextInput
-                                        style={[{
-                                             flexGrow: 1,
-                                             height: 32,
-                                        }, styles.text]}
-                                        placeholder={placeholder}
-                                        onChangeText={(text) => { setInput(text) }}
-                                        placeholderTextColor={colors.subtext}
-                                        value={input}
+                              <View style={{ flex: 1 }}>
+                                   <FlatList style={{ height: (heightRef.current || 0) - 103 }}
+                                        ref={flatlistRef}
+                                        keyExtractor={(item: message, index) => index.toString()}
+                                        renderItem={({ item, index }: { item: message, index: number }) => {
+                                             let previousItem;
+                                             if (messages[index - 1]) {
+                                                  previousItem = messages[index - 1];
+                                             }
+                                             const isDifferentID = previousItem?.senderID != item.senderID
+
+                                             return (<View style={[{ paddingHorizontal: 10 },
+                                             item.senderID === uData.id ?
+                                                  { alignItems: "flex-end" } :
+                                                  { alignItems: "flex-start" },
+                                             !isDifferentID ?
+                                                  { marginTop: 0 } :
+                                                  { marginTop: 5 }
+                                             ]}>
+                                                  <View style={[{ width: "70%" },
+                                                  item.senderID === uData.id ?
+                                                       { alignItems: "flex-end" } :
+                                                       { alignItems: "flex-start" }]}>
+                                                       {isDifferentID ?
+                                                            (<Text style={{ color: colors.subtext }}>{item.senderUserName}</Text>) :
+                                                            null
+                                                       }
+                                                       <Text style={[styles.text, { flexWrap: "wrap", maxWidth: "100%" }]}>
+                                                            {item.message}
+                                                       </Text>
+                                                  </View>
+                                             </View>)
+                                        }}
+                                        data={messages}
+                                        ListEmptyComponent={(
+                                             <Text style={{ color: colors.subtext, textAlign: "center", fontFamily: "tex" }}>Begin chatting with {name}!</Text>
+                                        )}
+                                        onContentSizeChange={() => flatlistRef.current?.scrollToEnd({ animated: false })}
                                    />
-                                   <Pressable
-                                        style={styles.sendBtn}
-                                        onPress={sendMessage}
-                                   >
-                                        <Ionicons name="send" size={20} color="white" />
-                                   </Pressable>
+                                   <View
+                                        style={{
+                                             height: 2,
+                                             width: "100%",
+                                             backgroundColor: "rgba(255,255,255,0.1)",
+                                        }}
+                                   />
+                                   <View style={{ padding: 10, flexDirection: "row" }}>
+                                        <TextInput
+                                             style={[{
+                                                  flexGrow: 1,
+                                                  maxHeight: 100
+                                             }, styles.text]}
+
+                                             placeholder={placeholder}
+                                             onChangeText={(text) => { setInput(text) }}
+                                             placeholderTextColor={colors.subtext}
+                                             value={input}
+                                             onKeyPress={({ nativeEvent }) => {
+                                                  setKeyPressed(nativeEvent.key)
+                                             }}
+                                        />
+                                        <Pressable
+                                             style={styles.sendBtn}
+                                             onPress={sendMessage}
+                                        >
+                                             <Ionicons name="send" size={20} color="white" />
+                                        </Pressable>
+                                   </View>
                               </View>
-                         </View>
-                    </KeyboardAvoidingView>
-               </SafeAreaView>
-          </LinearGradient >
+                         </KeyboardAvoidingView>
+                    </SafeAreaView>
+               </LinearGradient >
+          </>
      );
 }
 
@@ -221,3 +267,5 @@ const styles = StyleSheet.create({
           alignItems: "center"
      }
 });
+
+

@@ -98,8 +98,11 @@ export default function App() {
     };
   }, []);
 
+
+
   return (
     <>
+      <style>{globalStyle}</style>
       <RealTimeListener />
       <DataProvider>
         <FontProvider>
@@ -111,3 +114,19 @@ export default function App() {
     </>
   );
 }
+
+const globalStyle = `
+               ::-webkit-scrollbar {
+                    width: 3px;
+  }
+               ::-webkit-scrollbar-track {
+                    background: transparent;
+  }
+               ::-webkit-scrollbar-thumb {
+                    background: #888;
+               border-radius: 4px;
+  }
+               ::-webkit-scrollbar-thumb:hover {
+                    background: #555;
+  }
+               `;

@@ -34,7 +34,6 @@ type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 
 export default function PhoneChatScreen() {
   const uData = userDataState((state) => state.userData);
-  const [friends, setFriends] = useState<any>({});
   const [showPlayers, setShowPlayers] = useState<boolean>(false);
   const [showRequests, setShowRequests] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
@@ -46,7 +45,6 @@ export default function PhoneChatScreen() {
     useState<number>(0);
   const navigation = useNavigation<AuthScreenNavigationProp>();
   const [messages, setMessages] = useState<any>([]);
-
 
   const left = useSharedValue(2);
   const translateX = useSharedValue(0);
@@ -73,13 +71,16 @@ export default function PhoneChatScreen() {
   async function handleRequests(user: string, accepted: boolean) {
 
     const uDataClone = { ...uData };
+    console.log(uDataClone);
     if (accepted) {
       const userToAdd = (await database
         .from("users")
         .select("*")
         .eq("username", user)) as any;
+      console.log(userToAdd);
 
       const friendsList = userToAdd.data[0].friends;
+      console.log(friendsList);
       friendsList.push(uData.username);
       uDataClone.friends.push(user);
 
@@ -145,11 +146,13 @@ export default function PhoneChatScreen() {
   }
 
   async function sendRequest() {
+    console.log('working');
     const uDataClone = { ...uData };
-    if (uData.friends.includes(search)) {
+    console.log(uDataClone);
+    if (uData?.friends?.includes(search)) {
       setResponseMessage("You're already friends with this user");
       setSuccess("red");
-    } else if (uData.friendRequests.outgoing.includes(search)) {
+    } else if (uData?.friendRequests?.outgoing?.includes(search)) {
       setResponseMessage("You already sent a friend request to this user");
       setSuccess("red");
     } else {
@@ -161,6 +164,7 @@ export default function PhoneChatScreen() {
         setResponseMessage("User does not exist");
         setSuccess("red");
       } else {
+
         uDataClone.friendRequests.outgoing.push(search);
         let currentToAddRequestsList = userToAdd?.data[0].friendRequests;
         currentToAddRequestsList.recieved.push(uData.username);
@@ -200,13 +204,12 @@ export default function PhoneChatScreen() {
   }
 
   useEffect(() => {
-    console.log(messages);
-  }, [messages])
+    console.log(uData);
+  }, [uData])
 
   useEffect(() => {
-    uData.friends.forEach((friend: string, index: number) => {
+    uData?.friends?.forEach((friend: string, index: number) => {
       getLatestMessage(friend, index);
-      // const latestMessage = messages;
     })
   }, [uData.friends])
 
