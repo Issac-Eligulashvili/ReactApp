@@ -18,11 +18,12 @@ export default function FriendsScreen() {
         <StatusBar style="auto" />
         {/* This is the top bar of the screen holding small tidbits of data */}
         <View style={{ width: "100%", flexGrow: 1 }}>
-          <View style={{ width: "100%", padding: 10, flexGrow: 1 }}>
-            {Platform.OS === "web" ? <PhoneChatScreen /> : <PhoneChatScreen />}
+          <View style={[{ width: "100%", padding: 10, flexGrow: 1 }, Platform.OS === 'web' ? { paddingRight: 0, paddingVertical: 0 } : null]}>
+            {Platform.OS === "web" ? <WebChat /> : <PhoneChatScreen />}
           </View>
         </View>
-        <Footer></Footer>
+        {Platform.OS === 'web' ? null :
+          <Footer></Footer>}
       </SafeAreaView>
     </LinearGradient>
   );

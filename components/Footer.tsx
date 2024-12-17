@@ -14,10 +14,6 @@ export default function Footer() {
   const setActiveTab = n((state) => state.setCurrentScreen);
   const navigation = useNavigation<AuthScreenNavigationProp>();
 
-  useEffect(() => {
-    console.log(activeTab);
-  }, [activeTab])
-
   return (
     <View style={{ marginBottom: 16, flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
       <Pressable style={{ justifyContent: "center", alignItems: "center" }}

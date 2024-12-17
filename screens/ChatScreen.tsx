@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, SafeAreaView, Pressable, KeyboardAvoidingView, FlatList, NativeModules, useWindowDimensions } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, Pressable, KeyboardAvoidingView, FlatList, NativeModules, useWindowDimensions, Platform } from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "@/components/type";
 import { LinearGradient } from "expo-linear-gradient";
@@ -10,7 +10,7 @@ import { userDataState } from "@/states/StoreStates";
 import { TextInput } from "react-native-gesture-handler";
 import colors from "@/assets/colors";
 import { database } from "@/js/supabaseClient";
-import { useReducedMotion } from "react-native-reanimated";
+import { navigation as n } from "@/states/StoreStates";
 
 type ChatScreenProps = RouteProp<RootStackParamList, "Chat">;
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
@@ -42,8 +42,10 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
      const arrOfChatUsers = [uData.username, name];
      const [heightOfContainer, setHeightOfContainer] = useState<number>();
      const flatlistRef = useRef<FlatList>(null);
+     const textInputRef = useRef<TextInput>(null);
      let heightRef = useRef<number>(0);
      const { height } = useWindowDimensions();
+     const setActiveTab = n((state) => state.setCurrentScreen);
 
      useEffect(() => {
           setPlaceholder(`Message ${name}`);
@@ -71,10 +73,26 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
                }
           }
           setInitMessages();
-          if (flatlistRef.current) {
-               flatlistRef.current.scrollToEnd({ animated: false });
-          }
-     }, [])
+          setTimeout(() => {
+               if (flatlistRef.current) {
+                    flatlistRef.current.scrollToEnd({ animated: false });
+               }
+          }, 1);
+          const handleKeyDown = (event: any) => {
+               // Focus on the text input
+               if (textInputRef.current) {
+                    textInputRef.current.focus();
+               }
+          };
+
+          // Add keydown event listener
+          document.addEventListener('keydown', handleKeyDown);
+
+          // Clean up the event listener
+          return () => {
+               document.removeEventListener('keydown', handleKeyDown);
+          };
+     }, [name])
      useEffect(() => {
           const subscription = database
                .channel(`chat-${currentChatID}`)
@@ -98,9 +116,11 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
      }, [keyPressed]);
 
      useEffect(() => {
-          if (flatlistRef.current) {
-               flatlistRef.current.scrollToEnd({ animated: false });
-          }
+          setTimeout(() => {
+               if (flatlistRef.current) {
+                    flatlistRef.current.scrollToEnd({ animated: false });
+               }
+          }, 1);
      }, [messages])
 
      async function sendMessage() {
@@ -129,7 +149,7 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
      return (
           <>
                <LinearGradient
-                    colors={["#2E1A47", "#0B1124"]}
+                    colors={Platform.OS === "web" ? ['transparent', 'transparent'] : ["#2E1A47", "#0B1124"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.gradient}
@@ -142,14 +162,19 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
                               <View
                                    style={{ flexDirection: "row", justifyContent: "space-between" }}
                               >
-                                   <Pressable
+                                   {Platform.OS === 'web' ? null : <Pressable
                                         onPress={() => navigation.goBack()}
                                         style={{ marginLeft: 10 }}
                                    >
                                         <Feather name="arrow-left" size={24} color="white" />
-                                   </Pressable>
-                                   <Text style={styles.text}>{name}</Text>
-                                   <View style={{ height: "100%", width: 24, marginRight: 10 }} />
+                                   </Pressable>}
+                                   <Text style={[styles.text, Platform.OS === 'web' ? { marginLeft: 10 } : null]}>{name}</Text>
+                                   {Platform.OS === 'web' ?
+                                        <Pressable style={{ marginRight: 10 }} onPress={() => { navigation.goBack(); setActiveTab("Home") }}>
+                                             <Feather name="x" size={24} color="white" />
+                                        </Pressable> :
+                                        <View style={{ height: "100%", width: 24, marginRight: 10 }} />
+                                   }
                               </View>
                               <View
                                    style={{
@@ -160,7 +185,7 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
                                    }}
                               />
                               <View style={{ flex: 1 }}>
-                                   <FlatList style={{ height: (heightRef.current || 0) - 103 }}
+                                   <FlatList style={{ height: (heightRef.current || 0) - 103, paddingBottom: 10 }}
                                         ref={flatlistRef}
                                         keyExtractor={(item: message, index) => index.toString()}
                                         renderItem={({ item, index }: { item: message, index: number }) => {
@@ -174,19 +199,16 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
                                              item.senderID === uData.id ?
                                                   { alignItems: "flex-end" } :
                                                   { alignItems: "flex-start" },
-                                             !isDifferentID ?
-                                                  { marginTop: 0 } :
-                                                  { marginTop: 5 }
                                              ]}>
                                                   <View style={[{ width: "70%" },
                                                   item.senderID === uData.id ?
                                                        { alignItems: "flex-end" } :
                                                        { alignItems: "flex-start" }]}>
                                                        {isDifferentID ?
-                                                            (<Text style={{ color: colors.subtext }}>{item.senderUserName}</Text>) :
+                                                            (<Text style={{ color: colors.subtext, height: 24, display: "flex", alignItems: "flex-end" }}>{item.senderUserName}</Text>) :
                                                             null
                                                        }
-                                                       <Text style={[styles.text, { flexWrap: "wrap", maxWidth: "100%" }]}>
+                                                       <Text style={[styles.text, { flexWrap: "wrap", maxWidth: "100%", height: 24 }]}>
                                                             {item.message}
                                                        </Text>
                                                   </View>
@@ -197,6 +219,7 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
                                              <Text style={{ color: colors.subtext, textAlign: "center", fontFamily: "tex" }}>Begin chatting with {name}!</Text>
                                         )}
                                         onContentSizeChange={() => flatlistRef.current?.scrollToEnd({ animated: false })}
+
                                    />
                                    <View
                                         style={{
@@ -211,7 +234,7 @@ export default function ChatScreen({ route }: { route: ChatScreenProps }) {
                                                   flexGrow: 1,
                                                   maxHeight: 100
                                              }, styles.text]}
-
+                                             ref={textInputRef}
                                              placeholder={placeholder}
                                              onChangeText={(text) => { setInput(text) }}
                                              placeholderTextColor={colors.subtext}
