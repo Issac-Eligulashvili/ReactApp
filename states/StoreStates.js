@@ -71,3 +71,8 @@ export const navigation = create((set) => ({
      currentScreen: "Home",
      setCurrentScreen: (screen) => set({ currentScreen: screen })
 }))
+
+export const playerCardModal = create((set) => ({
+     isShowing: false,
+     setIsShowing: (val) => set({isShowing: val})
+}))

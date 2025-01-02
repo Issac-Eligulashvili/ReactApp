@@ -1,6 +1,12 @@
 import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
-import { View, StyleSheet, SafeAreaView, Text } from "react-native";
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Text,
+  useWindowDimensions,
+} from "react-native";
 import { currentLeagueNav, useCurrentLeagueStore } from "@/states/StoreStates";
 import { StatusBar } from "expo-status-bar";
 import Footer from "@/components/Footer";
@@ -15,15 +21,18 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { useNavigation } from "@react-navigation/native";
 
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
-
 export default function CurrentLeagueScreen() {
   const currentTab = currentLeagueNav((state) => state.currentTab);
-  const currentLeagueData = useCurrentLeagueStore((state) => state.currentLeagueData);
+  const currentLeagueData = useCurrentLeagueStore(
+    (state) => state.currentLeagueData
+  );
   const navigation = useNavigation<AuthScreenNavigationProp>();
 
   if (currentLeagueData.isDrafting) {
     navigation.navigate("Draft");
   }
+
+  const { height } = useWindowDimensions();
 
   const renderTabComponent = () => {
     switch (currentTab) {
@@ -41,19 +50,21 @@ export default function CurrentLeagueScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={["#2E1A47", "#0B1124"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.gradient}
-    >
-      <SafeAreaView style={styles.container}>
-        <LeagueScreenNav />
-        {renderTabComponent()}
-        <StatusBar style="auto" />
-        <Footer></Footer>
-      </SafeAreaView>
-    </LinearGradient>
+    <>
+      <LinearGradient
+        colors={["#2E1A47", "#0B1124"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.gradient, { height: height }]}
+      >
+        <SafeAreaView style={styles.container}>
+          <LeagueScreenNav />
+          {renderTabComponent()}
+          <StatusBar style="auto" />
+        </SafeAreaView>
+      </LinearGradient>
+      <Footer></Footer>
+    </>
   );
 }
 
@@ -73,5 +84,7 @@ const styles = StyleSheet.create({
     width: "100%",
     position: "relative",
     overflow: "hidden",
+    paddingBottom: 64,
+    height: "100%",
   },
 });

@@ -15,6 +15,7 @@ import {
   userDataState,
   liveData,
   useModalStore,
+  playerCardModal,
 } from "@/states/StoreStates";
 import Feather from "@expo/vector-icons/Feather";
 import Svg, { Path } from "react-native-svg";
@@ -25,6 +26,7 @@ import { SlideModal } from "../ModalComponent";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { LogoSVGComponent } from "../FetchLeagueSVG";
 import { database } from "@/js/supabaseClient";
+import PlayerCard from "../PlayerCard";
 
 type Player = {
   position: string;
@@ -33,6 +35,8 @@ type Player = {
   team: string;
   teamAbbr: string;
   points?: number;
+  match_data?: [];
+  region: string;
 };
 
 export default function TeamTab() {
@@ -63,6 +67,9 @@ export default function TeamTab() {
   );
   const [benchComponent, setBenchComponent] = useState<any>([]);
   const [teamComponent, setTeamComponent] = useState<any>([]);
+  const showPlayerCard = playerCardModal((state) => state.isShowing);
+  const setShowPlayerCard = playerCardModal((state) => state.setIsShowing);
+  const [currentPlayer, setCurrentPlayer] = useState<Player>();
 
   const startersOrder = [
     "IGL",
@@ -180,7 +187,6 @@ export default function TeamTab() {
       benchClone[swappingIndex] = toSwapName;
     }
 
-
     setStarters(startersClone);
     setBench(benchClone);
 
@@ -192,7 +198,6 @@ export default function TeamTab() {
     });
     currentTeamsPlaying[playerTeamIndex].team.starters = startersClone;
     currentTeamsPlaying[playerTeamIndex].team.bench = benchClone;
-
 
     const response = await database
       .from("leagues")
@@ -233,19 +238,19 @@ export default function TeamTab() {
   }, [benchData]);
 
   useEffect(() => {
-    const arr = [{ title: "Starters", data: {} }, { title: "Bench", data: {} }];
+    const arr = [
+      { title: "Starters", data: {} },
+      { title: "Bench", data: {} },
+    ];
 
     arr[0].data = startersComponent;
     arr[1].data = benchComponent;
     console.log(arr);
     setTeamComponent(arr);
-
-  }, [startersComponent, benchComponent])
+  }, [startersComponent, benchComponent]);
 
   const record = `${userDataForCL.wins} - ${userDataForCL.losses}`;
   const { height } = useWindowDimensions();
-  let listHeight;
-  { Platform.OS === 'web' ? listHeight = 33 : listHeight = height - 470 + 23 }
   return (
     <View style={{ width: "100%", flexGrow: 1 }}>
       <View
@@ -348,140 +353,159 @@ export default function TeamTab() {
           flexGrow: 1,
         }}
       >
-
-        <SectionList
-          style={{
-            flexDirection: "row",
-            flexGrow: 1,
-            width: "100%",
-            height: listHeight,
-          }}
-          sections={teamComponent}
-          keyExtractor={(item, index) => item + index}
-          renderItem={({ item: player, index, section }) => (
-            <View
-              style={[
-                {
-                  height: 32,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  width: "100%",
-                },
-                index === 0 ? {} : { marginTop: 15 },
-              ]}
-              key={index}
-            >
-              <Pressable
-                style={[
-                  section.title === "Starters" ? {
-                    backgroundColor:
-                      colors[player?.position as keyof typeof colors],
-                  } : { backgroundColor: colors.Bench },
-                  styles.positionBox,
-                ]}
-                onPress={() => {
-                  setPosToSwap(player?.position);
-                  setPlayerToSwap(player);
-                  setIsSwapOpened(true);
-                  if (section.title === "Bench") {
-                    setIsBench(true);
-                  } else {
-                    setIsBench(false);
-                  }
-                }}
-              >
-                {section.title === "Starters" ? <Image
-                  source={
-                    positionIcons[
-                    player?.position as keyof typeof positionIcons
-                    ]
-                  }
-                  style={styles.positionImage}
-                /> :
-                  <Text
-                    style={{
-                      fontFamily: "The-Bold-Font",
-                      fontSize: 11,
-                      color: "white",
-                    }}
-                  >
-                    BN
-                  </Text>
-                }
-              </Pressable>
+        <View
+          style={[
+            { overflow: "hidden", height: 397 },
+            Platform.OS === "web" ? { flex: 1 } : null,
+          ]}
+        >
+          <SectionList
+            style={{
+              flexGrow: 0,
+              flexShrink: 0,
+              width: "100%",
+              height: "100%",
+            }}
+            sections={teamComponent}
+            keyExtractor={(item, index) => item + index}
+            renderItem={({ item: player, index, section }) => (
               <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  flexGrow: 1,
-                }}
+                style={[
+                  {
+                    height: 32,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    width: "100%",
+                  },
+                  index === 0 ? {} : { marginTop: 15 },
+                ]}
+                key={index}
               >
-                <View>
-                  <Text
-                    style={
-                      player.player != "Empty"
-                        ? [styles.playerName]
-                        : styles.empty
+                <Pressable
+                  style={[
+                    section.title === "Starters"
+                      ? {
+                          backgroundColor:
+                            colors[player?.position as keyof typeof colors],
+                        }
+                      : { backgroundColor: colors.Bench },
+                    styles.positionBox,
+                  ]}
+                  onPress={() => {
+                    setPosToSwap(player?.position);
+                    setPlayerToSwap(player);
+                    setIsSwapOpened(true);
+                    if (section.title === "Bench") {
+                      setIsBench(true);
+                    } else {
+                      setIsBench(false);
                     }
-                  >
-                    {player.player}
-                  </Text>
-                  {player.player != "Empty" ? (
-                    <View
+                  }}
+                >
+                  {section.title === "Starters" ? (
+                    <Image
+                      source={
+                        positionIcons[
+                          player?.position as keyof typeof positionIcons
+                        ]
+                      }
+                      style={styles.positionImage}
+                    />
+                  ) : (
+                    <Text
                       style={{
-                        flexDirection: "row",
-                        marginTop: -4,
+                        fontFamily: "The-Bold-Font",
+                        fontSize: 11,
+                        color: "white",
                       }}
                     >
-                      <Text
-                        style={[
-                          styles.playerInfoText,
-                          {
-                            color:
-                              colors[player?.position as keyof typeof colors],
-                          },
-                        ]}
-                      >
-                        {positionAbbriviations[
-                          player?.position as keyof typeof positionAbbriviations
-                        ].toUpperCase()}{" "}
-                      </Text>
-                      <Text
-                        style={[styles.playerInfoText, { color: "#ABABAB" }]}
-                      >
-                        • {player?.teamAbbr}
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
-                <Text
-                  style={
-                    player.points != null ? [styles.playerName] : styles.empty
-                  }
+                      BN
+                    </Text>
+                  )}
+                </Pressable>
+                <Pressable
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    flexGrow: 1,
+                  }}
+                  onPress={() => {
+                    setCurrentPlayer(player);
+                    setShowPlayerCard(true);
+                  }}
                 >
-                  {player?.points ?? "-"}
-                </Text>
+                  <View>
+                    <Text
+                      style={
+                        player.player != "Empty"
+                          ? [styles.playerName]
+                          : styles.empty
+                      }
+                    >
+                      {player.player}
+                    </Text>
+                    {player.player != "Empty" ? (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          marginTop: -4,
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.playerInfoText,
+                            {
+                              color:
+                                colors[player?.position as keyof typeof colors],
+                            },
+                          ]}
+                        >
+                          {positionAbbriviations[
+                            player?.position as keyof typeof positionAbbriviations
+                          ].toUpperCase()}{" "}
+                        </Text>
+                        <Text
+                          style={[styles.playerInfoText, { color: "#ABABAB" }]}
+                        >
+                          • {player?.teamAbbr}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text
+                    style={
+                      player.points != null ? [styles.playerName] : styles.empty
+                    }
+                  >
+                    {player?.points ?? "-"}
+                  </Text>
+                </Pressable>
               </View>
-            </View>
-          )}
-          renderSectionHeader={({ section: { title } }) =>
-          (<Text
-            style={[{
-              fontFamily: "VisbyCF",
-              color: "white",
-              fontSize: 16,
-            }, title === "Bench" ? { marginVertical: 23 } : { marginBottom: 23 }]}
-          >
-            {title}
-          </Text>)
-          }
-          stickySectionHeadersEnabled={false}
-          contentContainerStyle={{ width: "100%", flexGrow: 1, paddingBottom: 40 }}
-          scrollEnabled={true}
-          decelerationRate={"normal"}
-          snapToAlignment="start"
-          bounces={true}
-        />
+            )}
+            renderSectionHeader={({ section: { title } }) => (
+              <Text
+                style={[
+                  {
+                    fontFamily: "VisbyCF",
+                    color: "white",
+                    fontSize: 16,
+                  },
+                  title === "Bench"
+                    ? { marginVertical: 23 }
+                    : { marginBottom: 23 },
+                ]}
+              >
+                {title}
+              </Text>
+            )}
+            stickySectionHeadersEnabled={false}
+            contentContainerStyle={{
+              width: "100%",
+            }}
+            scrollEnabled={true}
+            bounces={false}
+          />
+        </View>
         <SlideModal isOpen={isSwapOpened}>
           <View
             style={{
@@ -537,9 +561,7 @@ export default function TeamTab() {
                       styles.positionBox,
                       {
                         backgroundColor:
-                          colors[
-                          playerToSwap?.position as keyof typeof colors
-                          ],
+                          colors[playerToSwap?.position as keyof typeof colors],
                         margin: 0,
                       },
                     ]}
@@ -547,7 +569,7 @@ export default function TeamTab() {
                     <Image
                       source={
                         positionIcons[
-                        playerToSwap?.position as keyof typeof positionIcons
+                          playerToSwap?.position as keyof typeof positionIcons
                         ]
                       }
                       style={styles.positionImage}
@@ -606,10 +628,7 @@ export default function TeamTab() {
                       position: "absolute",
                       bottom: 0,
                       right: 0,
-                      transform: [
-                        { translateX: "25%" },
-                        { translateY: "25%" },
-                      ],
+                      transform: [{ translateX: "25%" }, { translateY: "25%" }],
                     }}
                   />
                 </View>
@@ -636,7 +655,7 @@ export default function TeamTab() {
                           {
                             color:
                               colors[
-                              playerToSwap?.position as keyof typeof colors
+                                playerToSwap?.position as keyof typeof colors
                               ],
                           },
                         ]}
@@ -703,7 +722,7 @@ export default function TeamTab() {
                     <Image
                       source={
                         positionIcons[
-                        player?.position as keyof typeof positionIcons
+                          player?.position as keyof typeof positionIcons
                         ]
                       }
                       style={styles.positionImage}
@@ -753,9 +772,7 @@ export default function TeamTab() {
                             styles.playerInfoText,
                             {
                               color:
-                                colors[
-                                player?.position as keyof typeof colors
-                                ],
+                                colors[player?.position as keyof typeof colors],
                             },
                           ]}
                         >
@@ -764,10 +781,7 @@ export default function TeamTab() {
                           ]?.toUpperCase()}{" "}
                         </Text>
                         <Text
-                          style={[
-                            styles.playerInfoText,
-                            { color: "#ABABAB" },
-                          ]}
+                          style={[styles.playerInfoText, { color: "#ABABAB" }]}
                         >
                           • {player?.teamAbbr}
                         </Text>
@@ -777,9 +791,7 @@ export default function TeamTab() {
                 </View>
                 <Text
                   style={
-                    player?.points != null
-                      ? [styles.playerName]
-                      : styles.empty
+                    player?.points != null ? [styles.playerName] : styles.empty
                   }
                 >
                   {player?.points ?? "-"}
@@ -879,9 +891,7 @@ export default function TeamTab() {
                             styles.playerInfoText,
                             {
                               color:
-                                colors[
-                                player?.position as keyof typeof colors
-                                ],
+                                colors[player?.position as keyof typeof colors],
                             },
                           ]}
                         >
@@ -890,10 +900,7 @@ export default function TeamTab() {
                           ]?.toUpperCase()}{" "}
                         </Text>
                         <Text
-                          style={[
-                            styles.playerInfoText,
-                            { color: "#ABABAB" },
-                          ]}
+                          style={[styles.playerInfoText, { color: "#ABABAB" }]}
                         >
                           • {player?.teamAbbr}
                         </Text>
@@ -903,9 +910,7 @@ export default function TeamTab() {
                 </View>
                 <Text
                   style={
-                    player?.points != null
-                      ? [styles.playerName]
-                      : styles.empty
+                    player?.points != null ? [styles.playerName] : styles.empty
                   }
                 >
                   {player?.points ?? "-"}
@@ -914,8 +919,16 @@ export default function TeamTab() {
             ))}
           </View>
         </SlideModal>
+        <SlideModal isOpen={showPlayerCard}>
+          <ScrollView
+            style={{ width: "100%", height: "85%", flexGrow: 0 }}
+            contentContainerStyle={{ flexGrow: 1 }}
+          >
+            {currentPlayer && <PlayerCard player={currentPlayer} />}
+          </ScrollView>
+        </SlideModal>
       </View>
-    </View >
+    </View>
   );
 }
 

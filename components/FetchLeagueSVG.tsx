@@ -3,31 +3,31 @@ import { useState } from "react";
 import React from "react";
 
 export function LogoSVGComponent({
-     uri,
-     style,
-     ...props
+  uri,
+  style,
+  add,
+  ...props
 }: {
-     uri: string;
-     style?: object; // Optional style prop
+  uri: string;
+  style?: object; // Optional style prop
+  add?: object;
 }) {
-     const [transformedSvg, setTransformedSVG] = useState("");
+  const [transformedSvg, setTransformedSVG] = useState("");
 
-     async function fetchLeagueSVG() {
-          const response = await fetch(uri);
-          let svgContent = await response.text();
+  async function fetchLeagueSVG() {
+    const response = await fetch(uri);
+    let svgContent = await response.text();
 
-          setTransformedSVG(svgContent);
+    setTransformedSVG(svgContent);
+  }
 
+  React.useEffect(() => {
+    fetchLeagueSVG();
+  }, []);
 
-     }
-
-     React.useEffect(() => {
-          fetchLeagueSVG();
-     }, []);
-
-     if (transformedSvg) {
-          return <SvgXml xml={transformedSvg} style={style} {...props} />
-     } else {
-          return null
-     }
+  if (transformedSvg) {
+    return <SvgXml xml={transformedSvg} style={style} {...props} />;
+  } else {
+    return null;
+  }
 }

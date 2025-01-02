@@ -13,7 +13,7 @@ import { RootStackParamList } from "./components/type";
 import { DataProvider } from "./components/UserDataProvider";
 import { FontProvider } from "./components/FontProvider";
 import { RealTimeListener } from "./components/LiveUpdateListener";
-import { LogBox } from "react-native";
+import { LogBox, Platform } from "react-native";
 import ChatScreen from "./screens/ChatScreen";
 
 const AuthStack = createStackNavigator<RootStackParamList>();
@@ -73,9 +73,8 @@ function HomeStackScreen() {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   LogBox.ignoreAllLogs(true);
-  console.error = () => { }; // Suppress error logs
-  console.warn = () => { };  // Suppress warning logs
-
+  console.error = () => {}; // Suppress error logs
+  console.warn = () => {}; // Suppress warning logs
 
   useEffect(() => {
     async function fetchUser() {
@@ -98,11 +97,9 @@ export default function App() {
     };
   }, []);
 
-
-
   return (
     <>
-      <style>{globalStyle}</style>
+      {Platform.OS === "web" ? <style>{globalStyle}</style> : null}
       <RealTimeListener />
       <DataProvider>
         <FontProvider>

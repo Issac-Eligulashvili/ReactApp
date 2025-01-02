@@ -5,9 +5,12 @@ import { navigation as n } from "@/states/StoreStates";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "@/components/type";
-import Ionicons from '@expo/vector-icons/Ionicons';
+import Ionicons from "@expo/vector-icons/Ionicons";
 
-type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Footer">;
+type AuthScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "Footer"
+>;
 
 export default function Footer() {
   const activeTab = n((state) => state.currentScreen);
@@ -15,9 +18,24 @@ export default function Footer() {
   const navigation = useNavigation<AuthScreenNavigationProp>();
 
   return (
-    <View style={{ marginBottom: 16, flexDirection: "row", justifyContent: "space-around", width: "100%" }}>
-      <Pressable style={{ justifyContent: "center", alignItems: "center" }}
-        onPress={() => { setActiveTab("Home"); navigation.goBack() }}
+    <View
+      style={{
+        marginBottom: 16,
+        flexDirection: "row",
+        justifyContent: "space-around",
+        width: "100%",
+        position: "absolute",
+        bottom: 0,
+        left: "50%",
+        transform: [{ translateX: "-50%" }],
+      }}
+    >
+      <Pressable
+        style={{ justifyContent: "center", alignItems: "center" }}
+        onPress={() => {
+          setActiveTab("Home");
+          navigation.goBack();
+        }}
       >
         <Svg
           width="32"
@@ -44,10 +62,22 @@ export default function Footer() {
           Home
         </Text>
       </Pressable>
-      <Pressable style={{ justifyContent: "center", alignItems: "center" }}
-        onPress={() => { setActiveTab("Chat"); navigation.navigate("Friends") }}
+      <Pressable
+        style={{ justifyContent: "center", alignItems: "center" }}
+        onPress={() => {
+          setActiveTab("Chat");
+          navigation.navigate("Friends");
+        }}
       >
-        {activeTab === "Chat" ? <Ionicons name="chatbubble-ellipses" size={30} color="white" /> : <Ionicons name="chatbubble-ellipses-outline" size={30} color="white" />}
+        {activeTab === "Chat" ? (
+          <Ionicons name="chatbubble-ellipses" size={30} color="white" />
+        ) : (
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={30}
+            color="white"
+          />
+        )}
         <Text
           style={{
             fontSize: 13,
