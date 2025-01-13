@@ -214,7 +214,7 @@ export default function PlayerCard({ player }: { player: Player }) {
             {
               flexDirection: "row",
               width: "auto",
-              backgroundColor: getBGColor(kda, averages.kda),
+              backgroundColor: getBGColor(kda, averages.kda, ""),
             },
           ]}
         >
@@ -452,7 +452,7 @@ export default function PlayerCard({ player }: { player: Player }) {
       >
         <ScrollView
           nestedScrollEnabled={true}
-          style={{ flex: 1 }}
+          style={{ flexGrow: 1 }}
           contentContainerStyle={{ width: "100%", flexDirection: "column" }}
         >
           <Text style={[styles.text, { marginLeft: 10, marginTop: 10 }]}>
@@ -541,7 +541,7 @@ export default function PlayerCard({ player }: { player: Player }) {
             bounces={false}
             scrollEventThrottle={16}
             showsHorizontalScrollIndicator={false}
-            style={{ flex: 0 }}
+            style={Platform.OS === "ios" ? { flex: 0 } : { flex: 1 }}
           />
         </ScrollView>
       </View>
