@@ -313,6 +313,7 @@ export default function PlayerCard({ player }: { player: Player }) {
           borderTopRightRadius: 10,
           borderTopLeftRadius: 10,
           flexDirection: "row",
+          overflow: "hidden",
         }}
       >
         <Pressable
@@ -448,11 +449,17 @@ export default function PlayerCard({ player }: { player: Player }) {
         style={{
           backgroundColor: "#27183f",
           flexGrow: 1,
+          borderBottomRightRadius: 10,
+          borderBottomLeftRadius: 10,
         }}
       >
         <ScrollView
           nestedScrollEnabled={true}
-          style={{ flexGrow: 1 }}
+          style={{
+            flexGrow: 1,
+            paddingBottom: 8,
+            paddingRight: 8,
+          }}
           contentContainerStyle={{ width: "100%", flexDirection: "column" }}
         >
           <Text style={[styles.text, { marginLeft: 10, marginTop: 10 }]}>
