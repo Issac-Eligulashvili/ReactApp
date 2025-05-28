@@ -6,7 +6,6 @@ import {
   TextInput,
   StyleSheet,
   Animated,
-  Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -24,6 +23,7 @@ import { RootStackParamList } from "./type";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Clipboard from "expo-clipboard";
 import { navigation as n } from "@/states/StoreStates";
+import { CustomModal } from "./ModalComponent";
 
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, "Home">;
 

@@ -27,6 +27,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { LogoSVGComponent } from "../FetchLeagueSVG";
 import { database } from "@/js/supabaseClient";
 import PlayerCard from "../PlayerCard";
+import { CustomModal } from "../ModalComponent";
 
 type Player = {
   position: string;
@@ -919,14 +920,25 @@ export default function TeamTab() {
             ))}
           </View>
         </SlideModal>
-        <SlideModal isOpen={showPlayerCard}>
-          <ScrollView
-            style={{ width: "100%", height: "85%", flexGrow: 0 }}
-            contentContainerStyle={{ flexGrow: 1 }}
-          >
-            {currentPlayer && <PlayerCard player={currentPlayer} />}
-          </ScrollView>
-        </SlideModal>
+        {Platform.OS === "web" ? (
+          <CustomModal isOpen={showPlayerCard}>
+            <ScrollView
+              style={{ flexGrow: 0 }}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
+              {currentPlayer && <PlayerCard player={currentPlayer} />}
+            </ScrollView>
+          </CustomModal>
+        ) : (
+          <SlideModal isOpen={showPlayerCard}>
+            <ScrollView
+              style={{ width: "100%", height: "85%", flexGrow: 0 }}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
+              {currentPlayer && <PlayerCard player={currentPlayer} />}
+            </ScrollView>
+          </SlideModal>
+        )}
       </View>
     </View>
   );
