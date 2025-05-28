@@ -6,6 +6,9 @@
     "assetBundlePatterns": [
       "./assets/fonts/*"
     ],
+    "experiments": {
+      "baseURL": "/ReactApp"
+    },
     "newArchEnabled": true,
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,7 +31,10 @@
       "package": "com.ieligulashvili07.ReactApp"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "build": {
+        "publicPath": "./"
+      }
     },
     "plugins": [
       "expo-font"
